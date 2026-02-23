@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TicketBot — Билеты</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0a14;
+    --bg2:      #111128;
+    --bg3:      #1a1a35;
+    --accent:   #7c3aed;
+    --accent2:  #a855f7;
+    --gold:     #f59e0b;
+    --text:     #f0f0ff;
+    --muted:    #6b6b9a;
+    --border:   #2a2a4a;
+    --green:    #10b981;
+    --red:      #ef4444;
+    --card-r:   16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
+
+  /* ── ШАПКА ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,20,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px 12px;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent2), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .cart-btn {
+    position: relative;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 14px;
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cart-count {
+    position: absolute;
+    top: -5px; right: -5px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 99px;
+    padding: 2px 5px;
+    min-width: 18px;
+    text-align: center;
+    display: none;
+  }
+  .cart-count.visible { display: block; }
+
+  /* ── ПОИСК И ФИЛЬТРЫ ── */
+  .search-box {
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .search-box input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 16px 10px 40px;
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-icon {
+    position: absolute;
+    left: 13px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    flex-shrink: 0;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 6px 14px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* ── КОНТЕНТ ── */
+  .content { padding: 16px; }
+
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  /* ── КАРТОЧКА СОБЫТИЯ (горизонтальная) ── */
+  .events-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .event-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.2s;
+    active-scale: 0.98;
+  }
+  .event-card:active { transform: scale(0.98); }
+  .event-card:hover { border-color: var(--accent); }
+
+  .event-card-inner {
+    display: flex;
+    gap: 0;
+  }
+  .event-poster {
+    width: 100px;
+    flex-shrink: 0;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  .event-poster img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute;
+  }
+  .event-poster-emoji { position: relative; z-index: 1; }
+  .event-body {
+    flex: 1;
+    padding: 14px 14px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .event-cat {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent2);
+  }
+  .event-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .event-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 2px;
+  }
+  .event-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .event-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .event-price {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .event-seats {
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--bg3);
+    padding: 3px 8px;
+    border-radius: 99px;
+  }
+  .event-seats.low { color: var(--red); }
+
+  /* ── ДЕТАЛЬНАЯ СТРАНИЦА ── */
+  .detail-page {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    overflow-y: auto;
+    padding-bottom: 100px;
+  }
+  .detail-page.open { display: block; }
+
+  .detail-hero {
+    height: 220px;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .detail-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(transparent, var(--bg));
+  }
+  .detail-hero img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute;
+  }
+  .detail-hero-emoji { position: relative; z-index: 1; }
+
+  .back-btn {
+    position: absolute;
+    top: 12px; left: 12px;
+    z-index: 10;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 99px;
+    color: #fff;
+    font-size: 14px;
+    padding: 8px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .detail-content { padding: 16px; }
+  .detail-cat {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .detail-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .detail-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .info-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .info-box-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .info-box-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .detail-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding: 14px;
+    background: var(--bg2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── ТИПЫ БИЛЕТОВ ── */
+  .tickets-section { margin-bottom: 20px; }
+  .tickets-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .ticket-type-card {
+    background: var(--bg2);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ticket-type-card.selected {
+    border-color: var(--accent);
+    background: rgba(124,58,237,0.1);
+  }
+  .ticket-type-card.sold-out {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .tt-left { display: flex; flex-direction: column; gap: 4px; }
+  .tt-name { font-weight: 600; font-size: 14px; }
+  .tt-seats { font-size: 11px; color: var(--muted); }
+  .tt-seats.low { color: var(--red); }
+  .tt-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .tt-price {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .tt-check {
+    width: 22px; height: 22px;
+    border-radius: 99px;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .ticket-type-card.selected .tt-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ── КОЛИЧЕСТВО ── */
+  .qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+  .qty-label { font-size: 14px; font-weight: 600; }
+  .qty-controls { display: flex; align-items: center; gap: 16px; }
+  .qty-btn {
+    width: 32px; height: 32px;
+    border-radius: 99px;
+    border: none;
+    background: var(--bg3);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .qty-btn:active { background: var(--accent); }
+  .qty-num {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  /* ── КАРЗИНА ── */
+  .cart-page {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 300;
+    overflow-y: auto;
+    padding-bottom: 100px;
+  }
+  .cart-page.open { display: block; }
+  .cart-header {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .cart-header-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .cart-item {
+    margin: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .cart-item-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .cart-item-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .cart-item-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cart-item-price {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .remove-btn {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--red);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .cart-total {
+    margin: 12px 16px;
+    background: var(--bg3);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cart-total-label { font-size: 14px; color: var(--muted); }
+  .cart-total-price {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .empty-cart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    gap: 12px;
+  }
+  .empty-cart-icon { font-size: 60px; }
+  .empty-cart-text { font-size: 14px; }
+
+  /* ── НИЖНЯЯ КНОПКА ── */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 16px max(env(safe-area-inset-bottom), 12px);
+    background: rgba(10,10,20,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    z-index: 500;
+  }
+  .main-btn {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+  .main-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .main-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ── ПУСТЫЕ СОСТОЯНИЯ ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    gap: 10px;
+    text-align: center;
+  }
+  .empty-icon { font-size: 48px; }
+
+  /* ── УСПЕХ ── */
+  .success-page {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 400;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 32px;
+    text-align: center;
+  }
+  .success-page.open { display: flex; }
+  .success-icon { font-size: 80px; animation: pop 0.5s ease; }
+  .success-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .success-sub { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  @keyframes pop {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── СКЕЛЕТОН ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 7px;
+    border-radius: 99px;
+    background: var(--gold);
+    color: #000;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════ ГЛАВНАЯ ════════════════════════════ -->
+<div id="mainPage">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">🎟 TicketBot</div>
+      <div class="cart-btn" onclick="openCart()">
+        🛒
+        <span class="cart-count" id="cartCount">0</span>
+      </div>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Поиск событий..." oninput="filterEvents()">
+    </div>
+    <div class="filters" id="filters"></div>
+  </div>
+
+  <div class="content">
+    <div class="section-title" id="eventsLabel">Предстоящие события</div>
+    <div class="events-list" id="eventsList"></div>
+  </div>
+
+  <div class="bottom-bar" id="mainBottomBar" style="display:none">
+    <button class="main-btn" onclick="openCart()">🛒 Перейти в корзину</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════ ДЕТАЛИ СОБЫТИЯ ════════════════════════════ -->
+<div class="detail-page" id="detailPage">
+  <div class="detail-hero" id="detailHero">
+    <button class="back-btn" onclick="closeDetail()">← Назад</button>
+    <span class="detail-hero-emoji" id="detailEmoji"></span>
+  </div>
+  <div class="detail-content">
+    <div class="detail-cat" id="detailCat"></div>
+    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-info-grid" id="detailGrid"></div>
+    <div class="detail-desc" id="detailDesc" style="display:none"></div>
+
+    <div class="tickets-section">
+      <div class="tickets-title">Выберите тип билета</div>
+      <div id="ticketTypes"></div>
+    </div>
+
+    <div class="qty-row">
+      <span class="qty-label">Количество</span>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-num" id="qtyNum">1</span>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="main-btn" id="addToCartBtn" onclick="addToCart()" disabled>
+      Выберите тип билета
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════ КОРЗИНА ════════════════════════════ -->
+<div class="cart-page" id="cartPage">
+  <div class="cart-header">
+    <button class="back-btn" style="position:static;background:var(--bg3)" onclick="closeCart()">←</button>
+    <div class="cart-header-title">Корзина</div>
+  </div>
+  <div id="cartContent"></div>
+  <div class="bottom-bar">
+    <button class="main-btn" id="checkoutBtn" onclick="checkout()">
+      Оформить заказ
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════ УСПЕХ ════════════════════════════ -->
+<div class="success-page" id="successPage">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">Заказ оформлен!</div>
+  <div class="success-sub" id="successText">
+    Ваши билеты отправлены в бот.<br>Проверьте сообщения! 🎟
+  </div>
+  <button class="main-btn" style="max-width:280px" onclick="closeSuccess()">
+    Отлично!
+  </button>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// КОНФИГУРАЦИЯ — замени на URL твоего бэкенда
+// ════════════════════════════════════════════════════════════════════
+const API_URL = "https://YOUR_BOT_BACKEND_URL"; // ← заменишь после деплоя
+
+// ════════════════════════════════════════════════════════════════════
+// ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
+// ════════════════════════════════════════════════════════════════════
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+tg.setHeaderColor('#0a0a14');
+tg.setBackgroundColor('#0a0a14');
+
+const userId   = tg.initDataUnsafe?.user?.id   || null;
+const userName = tg.initDataUnsafe?.user?.first_name || "Гость";
+
+// ════════════════════════════════════════════════════════════════════
+// СОСТОЯНИЕ
+// ════════════════════════════════════════════════════════════════════
+let allEvents      = [];
+let currentEvent   = null;
+let selectedTT     = null;
+let qty            = 1;
+let cart           = JSON.parse(localStorage.getItem('cart') || '[]');
+let activeFilter   = 'all';
+
+// ════════════════════════════════════════════════════════════════════
+// ДЕМО-ДАННЫЕ (пока нет бэкенда — используем тестовые данные)
+// ════════════════════════════════════════════════════════════════════
+const DEMO_EVENTS = [
+  {
+    id: 1, title: "Imagine Dragons Live", category: "concert", emoji: "🎵",
+    venue: "Олимпийский", city: "Москва",
+    date: "15.06.2025", time: "19:00",
+    age_rating: "12+", description: "Грандиозное шоу мирового уровня с лазерами, конфетти и хитами из всех альбомов группы.",
+    ticket_types: [
+      { id: 1, name: "Стандарт",  price: 3500,  available: 120, total: 200 },
+      { id: 2, name: "VIP",       price: 8500,  available: 15,  total: 30  },
+      { id: 3, name: "Студент",   price: 2200,  available: 40,  total: 50  },
+    ]
+  },
+  {
+    id: 2, title: "Лебединое озеро", category: "theater", emoji: "🎭",
+    venue: "Большой театр", city: "Москва",
+    date: "22.06.2025", time: "18:30",
+    age_rating: "0+", description: "Классический балет Чайковского в исполнении ведущей труппы страны.",
+    ticket_types: [
+      { id: 4, name: "Партер",  price: 5000, available: 80,  total: 150 },
+      { id: 5, name: "Балкон",  price: 2500, available: 200, total: 300 },
+      { id: 6, name: "Ложа",    price: 12000, available: 4,  total: 8   },
+    ]
+  },
+  {
+    id: 3, title: "UFC Fight Night", category: "sport", emoji: "⚽",
+    venue: "Лужники", city: "Москва",
+    date: "30.06.2025", time: "20:00",
+    age_rating: "16+", description: "Вечер смешанных единоборств с участием топовых бойцов.",
+    ticket_types: [
+      { id: 7, name: "Трибуна",   price: 2000, available: 500, total: 1000 },
+      { id: 8, name: "Ринг-сайд", price: 15000, available: 3,  total: 20   },
+    ]
+  },
+  {
+    id: 4, title: "Импрессионизм: от Моне до Дега", category: "exhibition", emoji: "🖼",
+    venue: "Третьяковская галерея", city: "Москва",
+    date: "01.06.2025", time: "10:00",
+    age_rating: "0+", description: "Уникальная выставка шедевров французского импрессионизма из ведущих музеев мира.",
+    ticket_types: [
+      { id: 9,  name: "Взрослый",  price: 800,  available: 300, total: 500 },
+      { id: 10, name: "Льготный",  price: 400,  available: 100, total: 200 },
+    ]
+  },
+  {
+    id: 5, title: "Пикник Афиши 2025", category: "festival", emoji: "🎪",
+    venue: "Коломенское", city: "Москва",
+    date: "12.07.2025", time: "12:00",
+    age_rating: "0+", description: "Главный летний фестиваль страны с 30+ артистами на 5 сценах.",
+    ticket_types: [
+      { id: 11, name: "Однодневный", price: 4500, available: 1000, total: 5000 },
+      { id: 12, name: "VIP-зона",    price: 12000, available: 50, total: 100   },
+    ]
+  },
+];
+
+const CAT_LABELS = {
+  all: "🌐 Все", concert: "🎵 Концерты", theater: "🎭 Театр",
+  sport: "⚽ Спорт", exhibition: "🖼 Выставки", festival: "🎪 Фестивали"
+};
+
+// ════════════════════════════════════════════════════════════════════
+// ЗАГРУЗКА
+// ════════════════════════════════════════════════════════════════════
+async function loadEvents() {
+  try {
+    const r = await fetch(`${API_URL}/api/events`, {
+      headers: { 'X-Telegram-User-Id': userId || '' }
+    });
+    if (!r.ok) throw new Error();
+    allEvents = await r.json();
+  } catch {
+    // Используем демо-данные если нет бэкенда
+    allEvents = DEMO_EVENTS;
+  }
+  renderFilters();
+  renderEvents();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ФИЛЬТРЫ
+// ════════════════════════════════════════════════════════════════════
+function renderFilters() {
+  const cats = ['all', ...new Set(allEvents.map(e => e.category))];
+  document.getElementById('filters').innerHTML = cats.map(c => `
+    <button class="filter-btn ${c === activeFilter ? 'active' : ''}"
+            onclick="setFilter('${c}')">${CAT_LABELS[c] || c}</button>
+  `).join('');
+}
+
+function setFilter(cat) {
+  activeFilter = cat;
+  renderFilters();
+  filterEvents();
+}
+
+function filterEvents() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = allEvents.filter(e => {
+    const matchCat  = activeFilter === 'all' || e.category === activeFilter;
+    const matchText = !q || e.title.toLowerCase().includes(q) || e.city.toLowerCase().includes(q);
+    return matchCat && matchText;
+  });
+  renderEvents(filtered);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// РЕНДЕР СПИСКА СОБЫТИЙ
+// ════════════════════════════════════════════════════════════════════
+function renderEvents(events = allEvents) {
+  const list = document.getElementById('eventsList');
+  document.getElementById('eventsLabel').textContent =
+    `Предстоящие события (${events.length})`;
+
+  if (!events.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div>Ничего не найдено</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = events.map(ev => {
+    const minPrice = Math.min(...ev.ticket_types.map(t => t.price));
+    const totalSeats = ev.ticket_types.reduce((s, t) => s + t.available, 0);
+    const isLow = totalSeats <= 20;
+    return `
+    <div class="event-card" onclick="openDetail(${ev.id})">
+      <div class="event-card-inner">
+        <div class="event-poster">
+          ${ev.poster_url ? `<img src="${ev.poster_url}" alt="">` : ''}
+          <span class="event-poster-emoji">${ev.emoji || '🎡'}</span>
+        </div>
+        <div class="event-body">
+          <div class="event-cat">${CAT_LABELS[ev.category] || ev.category}</div>
+          <div class="event-title">${ev.title}</div>
+          <div class="event-meta">
+            <div class="event-meta-row">📅 ${ev.date} в ${ev.time}</div>
+            <div class="event-meta-row">📍 ${ev.venue}, ${ev.city}</div>
+            <div class="event-meta-row">🔞 ${ev.age_rating}</div>
+          </div>
+          <div class="event-footer">
+            <div class="event-price">от ${minPrice.toLocaleString('ru')} ₽</div>
+            <div class="event-seats ${isLow ? 'low' : ''}">
+              ${isLow ? '🔥 ' : ''}${totalSeats} мест
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ДЕТАЛЬНАЯ СТРАНИЦА СОБЫТИЯ
+// ════════════════════════════════════════════════════════════════════
+function openDetail(id) {
+  currentEvent = allEvents.find(e => e.id === id);
+  if (!currentEvent) return;
+  selectedTT = null;
+  qty = 1;
+
+  const ev = currentEvent;
+  document.getElementById('detailEmoji').textContent = ev.emoji || '🎡';
+  document.getElementById('detailCat').textContent   = CAT_LABELS[ev.category] || ev.category;
+  document.getElementById('detailTitle').textContent = ev.title;
+  document.getElementById('qtyNum').textContent      = '1';
+
+  if (ev.description) {
+    document.getElementById('detailDesc').style.display = 'block';
+    document.getElementById('detailDesc').textContent   = ev.description;
+  } else {
+    document.getElementById('detailDesc').style.display = 'none';
+  }
+
+  document.getElementById('detailGrid').innerHTML = `
+    <div class="info-box">
+      <div class="info-box-label">📅 Дата</div>
+      <div class="info-box-value">${ev.date}</div>
+    </div>
+    <div class="info-box">
+      <div class="info-box-label">🕐 Время</div>
+      <div class="info-box-value">${ev.time}</div>
+    </div>
+    <div class="info-box">
+      <div class="info-box-label">📍 Место</div>
+      <div class="info-box-value">${ev.venue}</div>
+    </div>
+    <div class="info-box">
+      <div class="info-box-label">🔞 Возраст</div>
+      <div class="info-box-value">${ev.age_rating}</div>
+    </div>
+  `;
+
+  document.getElementById('ticketTypes').innerHTML = ev.ticket_types.map(tt => {
+    const isSoldOut = tt.available === 0;
+    const isLow     = tt.available > 0 && tt.available <= 10;
+    return `
+    <div class="ticket-type-card ${isSoldOut ? 'sold-out' : ''}" id="tt-${tt.id}"
+         onclick="${isSoldOut ? '' : `selectTT(${tt.id})`}">
+      <div class="tt-left">
+        <div class="tt-name">${tt.name}${isLow ? '<span class="badge">Мало</span>' : ''}</div>
+        <div class="tt-seats ${isLow ? 'low' : ''}">
+          ${isSoldOut ? 'Нет мест' : `${tt.available} из ${tt.total} мест`}
+        </div>
+      </div>
+      <div class="tt-right">
+        <div class="tt-price">${tt.price.toLocaleString('ru')} ₽</div>
+        <div class="tt-check" id="check-${tt.id}">${isSoldOut ? '✕' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateAddBtn();
+  document.getElementById('detailPage').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+function closeDetail() {
+  document.getElementById('detailPage').classList.remove('open');
+  currentEvent = null;
+}
+
+function selectTT(id) {
+  const ev = currentEvent;
+  selectedTT = ev.ticket_types.find(t => t.id === id);
+  ev.ticket_types.forEach(t => {
+    document.getElementById(`tt-${t.id}`)?.classList.remove('selected');
+    document.getElementById(`check-${t.id}`).textContent = '';
+  });
+  document.getElementById(`tt-${id}`)?.classList.add('selected');
+  document.getElementById(`check-${id}`).textContent = '✓';
+  qty = 1;
+  document.getElementById('qtyNum').textContent = '1';
+  updateAddBtn();
+}
+
+function changeQty(delta) {
+  if (!selectedTT) return;
+  const max = Math.min(selectedTT.available, 8);
+  qty = Math.max(1, Math.min(max, qty + delta));
+  document.getElementById('qtyNum').textContent = qty;
+  updateAddBtn();
+}
+
+function updateAddBtn() {
+  const btn = document.getElementById('addToCartBtn');
+  if (!selectedTT) {
+    btn.textContent = 'Выберите тип билета';
+    btn.disabled = true;
+  } else {
+    const total = (selectedTT.price * qty).toLocaleString('ru');
+    btn.textContent = `В корзину — ${total} ₽`;
+    btn.disabled = false;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// КОРЗИНА
+// ════════════════════════════════════════════════════════════════════
+function addToCart() {
+  if (!selectedTT || !currentEvent) return;
+  const item = {
+    event_id: currentEvent.id,
+    event_title: currentEvent.title,
+    event_date: currentEvent.date,
+    event_time: currentEvent.time,
+    venue: currentEvent.venue,
+    tt_id: selectedTT.id,
+    tt_name: selectedTT.name,
+    price: selectedTT.price,
+    qty: qty,
+  };
+  // Если уже есть такой товар — увеличим количество
+  const existing = cart.find(c => c.tt_id === item.tt_id);
+  if (existing) {
+    existing.qty = Math.min(existing.qty + qty, 8);
+  } else {
+    cart.push(item);
+  }
+  saveCart();
+  tg.HapticFeedback?.notificationOccurred('success');
+  closeDetail();
+  updateCartBadge();
+  showMainBottomBar();
+}
+
+function saveCart() {
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function updateCartBadge() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const el = document.getElementById('cartCount');
+  el.textContent = total;
+  el.classList.toggle('visible', total > 0);
+}
+
+function showMainBottomBar() {
+  document.getElementById('mainBottomBar').style.display =
+    cart.length > 0 ? 'block' : 'none';
+}
+
+function openCart() {
+  renderCart();
+  document.getElementById('cartPage').classList.add('open');
+}
+
+function closeCart() {
+  document.getElementById('cartPage').classList.remove('open');
+}
+
+function removeFromCart(ttId) {
+  cart = cart.filter(i => i.tt_id !== ttId);
+  saveCart();
+  updateCartBadge();
+  showMainBottomBar();
+  renderCart();
+}
+
+function renderCart() {
+  const content = document.getElementById('cartContent');
+  if (!cart.length) {
+    content.innerHTML = `
+      <div class="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
+        <div class="empty-cart-text">Корзина пуста</div>
+      </div>`;
+    document.getElementById('checkoutBtn').disabled = true;
+    return;
+  }
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('checkoutBtn').disabled = false;
+  document.getElementById('checkoutBtn').textContent = `Оформить — ${total.toLocaleString('ru')} ₽`;
+
+  content.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <div class="cart-item-title">${item.event_title}</div>
+      <div class="cart-item-sub">
+        🎫 ${item.tt_name} × ${item.qty} шт. &nbsp;|&nbsp; 📅 ${item.event_date} ${item.event_time}
+      </div>
+      <div class="cart-item-footer">
+        <div class="cart-item-price">${(item.price * item.qty).toLocaleString('ru')} ₽</div>
+        <button class="remove-btn" onclick="removeFromCart(${item.tt_id})">Удалить</button>
+      </div>
+    </div>
+  `).join('') + `
+    <div class="cart-total">
+      <span class="cart-total-label">Итого</span>
+      <span class="cart-total-price">${total.toLocaleString('ru')} ₽</span>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ОФОРМЛЕНИЕ ЗАКАЗА
+// ════════════════════════════════════════════════════════════════════
+async function checkout() {
+  if (!cart.length) return;
+  document.getElementById('checkoutBtn').disabled = true;
+  document.getElementById('checkoutBtn').textContent = 'Оформляем...';
+
+  try {
+    const r = await fetch(`${API_URL}/api/order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Telegram-User-Id': userId || '',
+        'X-Telegram-Init-Data': tg.initData || '',
+      },
+      body: JSON.stringify({ items: cart, user_id: userId })
+    });
+
+    if (r.ok) {
+      cart = [];
+      saveCart();
+      updateCartBadge();
+      showMainBottomBar();
+      closeCart();
+      document.getElementById('successPage').classList.add('open');
+      tg.HapticFeedback?.notificationOccurred('success');
+    } else {
+      throw new Error();
+    }
+  } catch {
+    // Демо-режим: показываем успех даже без бэкенда
+    cart = [];
+    saveCart();
+    updateCartBadge();
+    showMainBottomBar();
+    closeCart();
+    document.getElementById('successPage').classList.add('open');
+    tg.HapticFeedback?.notificationOccurred('success');
+  }
+}
+
+function closeSuccess() {
+  document.getElementById('successPage').classList.remove('open');
+  // Закрываем мини-апп и возвращаем в бота
+  setTimeout(() => tg.close(), 300);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// СТАРТ
+// ════════════════════════════════════════════════════════════════════
+updateCartBadge();
+showMainBottomBar();
+loadEvents();
+</script>
+</body>
+</html>
