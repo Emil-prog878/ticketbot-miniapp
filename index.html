@@ -444,7 +444,7 @@ const UNAME= tg?.initDataUnsafe?.user?.first_name || "Гость";
 
 // СОСТОЯНИЕ
 let role='', cart=JSON.parse(localStorage.getItem('tg_cart')||'[]');
-let allEvs=[], curEv=null, selTT=null, qty=1, curFilter='all', curSelTab='stats';
+let allEvs=[], curEv=null, selectedTT=null, qty=1, curFilter='all', curSelTab='stats';
 let lastOrderTickets=[];
 
 // ДЕМО ДАННЫЕ
@@ -607,8 +607,8 @@ function openDetail(id){
   updAddBtn(); haptic?.selectionChanged(); pg('pgDetail');
 }
 function goBack(){ pg('pgBuyer'); }
-function selTT(id){
-  const ev=curEv; selTT=ev.ticket_types.find(t=>t.id===id);
+function selectTicketType(id){
+  const ev=curEv; selectedTT=ev.ticket_types.find(t=>t.id===id);
   ev.ticket_types.forEach(t=>{ document.getElementById(`tt${t.id}`)?.classList.remove('sel'); const r=document.getElementById(`rd${t.id}`); if(r) r.textContent=''; });
   document.getElementById(`tt${id}`)?.classList.add('sel');
   document.getElementById(`rd${id}`).textContent='✓';
@@ -616,23 +616,23 @@ function selTT(id){
   haptic?.selectionChanged(); updAddBtn();
 }
 function chQty(d){
-  if(!selTT) return;
-  qty=Math.max(1,Math.min(Math.min(selTT.available,8),qty+d));
+  if(!selectedTT) return;
+  qty=Math.max(1,Math.min(Math.min(selectedTT.available,8),qty+d));
   document.getElementById('qtyN').textContent=qty;
   haptic?.selectionChanged(); updAddBtn();
 }
 function updAddBtn(){
   const b=document.getElementById('addBtn');
-  if(!selTT){ b.textContent='Выберите тип билета'; b.disabled=true; }
-  else{ b.textContent=`🛒 В корзину — ${(selTT.price*qty).toLocaleString('ru')} ₽`; b.disabled=false; }
+  if(!selectedTT){ b.textContent='Выберите тип билета'; b.disabled=true; }
+  else{ b.textContent=`🛒 В корзину — ${(selectedTT.price*qty).toLocaleString('ru')} ₽`; b.disabled=false; }
 }
 
 // ── КОРЗИНА ──
 function addCart(){
-  if(!selTT||!curEv) return;
-  const ex=cart.find(c=>c.tt_id===selTT.id);
+  if(!selectedTT||!curEv) return;
+  const ex=cart.find(c=>c.tt_id===selectedTT.id);
   if(ex) ex.qty=Math.min(ex.qty+qty,8);
-  else cart.push({event_id:curEv.id,event_title:curEv.title,event_date:curEv.date,event_time:curEv.time,event_age:curEv.age_rating,venue:curEv.venue,tt_id:selTT.id,tt_name:selTT.name,price:selTT.price,qty});
+  else cart.push({event_id:curEv.id,event_title:curEv.title,event_date:curEv.date,event_time:curEv.time,event_age:curEv.age_rating,venue:curEv.venue,tt_id:selectedTT.id,tt_name:selectedTT.name,price:selectedTT.price,qty});
   saveCart(); haptic?.notificationOccurred('success');
   toast('✅ Добавлено в корзину!','ok');
   pg('pgBuyer');
