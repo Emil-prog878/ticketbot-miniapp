@@ -11,63 +11,149 @@
   --bg:#080812;--bg2:#10101f;--bg3:#18182e;--bg4:#22223a;
   --accent:#7c3aed;--a2:#a855f7;--gold:#f59e0b;
   --green:#10b981;--red:#ef4444;--txt:#f0f0ff;--muted:#6b6b9a;--bdr:#2a2a4a;
+  --tab-h:68px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
 body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes rpl{to{transform:scale(4);opacity:0}}
 @keyframes glow{0%,100%{box-shadow:0 0 15px rgba(124,58,237,.3)}50%{box-shadow:0 0 40px rgba(124,58,237,.65)}}
+@keyframes tabPop{0%{transform:translateY(0) scale(1)}40%{transform:translateY(-5px) scale(1.12)}100%{transform:translateY(0) scale(1)}}
+@keyframes dotIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-.page{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:10;transition:opacity .25s,transform .25s}
-.page.hide{opacity:0;pointer-events:none;transform:translateX(16px)}
+/* ── СТРАНИЦЫ ── */
+.page{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:10;transition:opacity .22s ease,transform .22s ease}
+.page.hide{opacity:0;pointer-events:none;transform:translateX(18px)}
+#pgDetail{z-index:20}
+#pgOnboard{align-items:center;justify-content:center;padding:32px 22px;text-align:center;
+  background:radial-gradient(ellipse at 50% -5%,rgba(124,58,237,.25) 0%,transparent 65%),var(--bg)}
 
-.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:13px;cursor:pointer;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;padding:13px 18px;transition:transform .13s,opacity .13s,box-shadow .2s;width:100%}
+/* ── НИЖНИЙ ТАББАР ── */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(10,10,22,.96);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:stretch;
+  height:var(--tab-h);
+  padding-bottom:env(safe-area-inset-bottom);
+  box-shadow:0 -8px 32px rgba(0,0,0,.4);
+}
+.tabbar.hide{display:none}
+.tab-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;cursor:pointer;position:relative;padding:8px 4px 10px;
+  transition:opacity .15s;
+  -webkit-user-select:none;user-select:none;
+}
+.tab-item:active{opacity:.7}
+.tab-icon-wrap{
+  position:relative;width:44px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:14px;
+  transition:background .22s ease, transform .18s ease;
+}
+.tab-item.active .tab-icon-wrap{
+  background:rgba(124,58,237,.18);
+  transform:translateY(-1px);
+}
+.tab-icon{
+  font-size:22px;line-height:1;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),filter .22s;
+  display:block;
+}
+.tab-item.active .tab-icon{
+  transform:scale(1.12);
+  filter:drop-shadow(0 0 6px rgba(168,85,247,.6));
+  animation:tabPop .35s ease;
+}
+.tab-label{
+  font-size:10px;font-weight:600;letter-spacing:.2px;
+  color:var(--muted);transition:color .2s;
+  line-height:1;
+}
+.tab-item.active .tab-label{
+  color:var(--a2);
+}
+.tab-badge{
+  position:absolute;top:-2px;right:2px;
+  background:linear-gradient(135deg,var(--accent),var(--a2));
+  color:#fff;font-size:9px;font-weight:700;
+  border-radius:99px;padding:2px 5px;min-width:17px;text-align:center;
+  display:none;border:2px solid rgba(10,10,22,.96);
+  animation:pop .3s ease;
+}
+.tab-badge.on{display:block}
+/* Индикатор активной вкладки */
+.tab-dot{
+  position:absolute;bottom:2px;left:50%;transform:translateX(-50%) scale(0);
+  width:4px;height:4px;border-radius:50%;
+  background:var(--a2);
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 6px var(--a2);
+}
+.tab-item.active .tab-dot{transform:translateX(-50%) scale(1);animation:dotIn .25s ease}
+
+/* ── КНОПКИ ── */
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;
+  gap:7px;border:none;border-radius:14px;cursor:pointer;font-family:'Manrope',sans-serif;
+  font-weight:700;font-size:14px;padding:13px 18px;
+  transition:transform .13s,opacity .13s,box-shadow .2s;width:100%}
 .btn:active{transform:scale(.96);opacity:.88}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 .bp{background:linear-gradient(135deg,var(--accent),var(--a2));color:#fff}
-.bp:not(:disabled):hover{box-shadow:0 6px 28px rgba(124,58,237,.4)}
+.bp:not(:disabled):hover{box-shadow:0 6px 28px rgba(124,58,237,.45)}
 .bs{background:var(--bg3);color:var(--txt);border:1px solid var(--bdr)}
 .bd{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)}
 .bsm{padding:7px 12px;font-size:12px;border-radius:10px;width:auto}
-.rpl-el{position:absolute;border-radius:50%;background:rgba(255,255,255,.22);transform:scale(0);animation:rpl .55s linear;pointer-events:none}
+.rpl-el{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);transform:scale(0);animation:rpl .55s linear;pointer-events:none}
 
-.hdr{padding:10px 14px 8px;background:rgba(8,8,18,.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);flex-shrink:0}
+/* ── ХЕДЕР ── */
+.hdr{padding:10px 14px 8px;background:rgba(8,8,18,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);flex-shrink:0}
 .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.logo{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--a2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;
+  background:linear-gradient(135deg,var(--a2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hbtns{display:flex;gap:7px}
-.hbtn{background:var(--bg3);border:1px solid var(--bdr);border-radius:11px;padding:7px 11px;color:var(--txt);font-size:13px;cursor:pointer;transition:all .18s;position:relative;white-space:nowrap}
+.hbtn{background:var(--bg3);border:1px solid var(--bdr);border-radius:11px;padding:7px 11px;
+  color:var(--txt);font-size:13px;cursor:pointer;transition:all .18s;position:relative;white-space:nowrap}
 .hbtn:active{transform:scale(.92)}
-.hbadge{position:absolute;top:-5px;right:-5px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:2px 5px;min-width:17px;text-align:center;display:none;border:2px solid var(--bg)}
-.hbadge.on{display:block;animation:pop .3s ease}
 
+/* ── ПОИСК И ЧИПЫ ── */
 .srch{position:relative;margin-bottom:7px}
-.srch input{width:100%;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:12px;padding:8px 12px 8px 35px;color:var(--txt);font-family:'Manrope',sans-serif;font-size:12px;outline:none;transition:border-color .2s}
+.srch input{width:100%;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:12px;
+  padding:8px 12px 8px 35px;color:var(--txt);font-family:'Manrope',sans-serif;font-size:12px;outline:none;transition:border-color .2s}
 .srch input:focus{border-color:var(--accent)}
 .srch input::placeholder{color:var(--muted)}
 .srch-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none}
 .chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:99px;padding:5px 12px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap}
+.chip{flex-shrink:0;background:var(--bg3);border:1px solid var(--bdr);border-radius:99px;padding:5px 12px;
+  color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;transform:scale(1.04)}
 
-.scr{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:12px;padding-bottom:88px}
+/* ── СКРОЛЛ ── */
+.scr{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  padding:12px;padding-bottom:calc(var(--tab-h) + 16px)}
 .scr::-webkit-scrollbar{display:none}
 
-.bbar{padding:9px 13px max(env(safe-area-inset-bottom),9px);background:rgba(8,8,18,.95);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);flex-shrink:0}
-
-#pgOnboard{align-items:center;justify-content:center;padding:32px 22px;text-align:center;background:radial-gradient(ellipse at 50% -5%,rgba(124,58,237,.22) 0%,transparent 65%),var(--bg)}
+/* ── ОНБОРДИНГ ── */
 .ob-ico{font-size:78px;animation:float 3s ease-in-out infinite;display:block;margin-bottom:14px}
-.ob-logo{font-family:'Unbounded',sans-serif;font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--a2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.ob-logo{font-family:'Unbounded',sans-serif;font-size:24px;font-weight:800;
+  background:linear-gradient(135deg,var(--a2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
 .ob-sub{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:34px}
 .role-cards{display:flex;flex-direction:column;gap:11px;width:100%;max-width:340px}
-.rc{background:var(--bg2);border:2px solid var(--bdr);border-radius:19px;padding:17px 18px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.rc{background:var(--bg2);border:2px solid var(--bdr);border-radius:19px;padding:17px 18px;
+  cursor:pointer;text-align:left;display:flex;align-items:center;gap:14px;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1)}
 .rc:active{transform:scale(.97)}
 .rc.buyer:hover{border-color:var(--green);background:rgba(16,185,129,.06);transform:translateY(-2px)}
 .rc.seller:hover{border-color:var(--gold);background:rgba(245,158,11,.06);transform:translateY(-2px)}
@@ -77,12 +163,15 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .rc-arr{color:var(--muted);font-size:17px;margin-left:auto;transition:transform .2s}
 .rc:hover .rc-arr{transform:translateX(4px);color:var(--txt)}
 
+/* ── КАРТОЧКИ СОБЫТИЙ ── */
 .ev-list{display:flex;flex-direction:column;gap:9px}
-.ev-card{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .13s,box-shadow .2s;animation:fadeUp .3s ease both}
+.ev-card{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;
+  cursor:pointer;transition:border-color .2s,transform .13s,box-shadow .2s;animation:fadeUp .3s ease both}
 .ev-card:active{transform:scale(.985)}
 .ev-card:hover{border-color:rgba(124,58,237,.4);box-shadow:0 4px 18px rgba(124,58,237,.1)}
 .ev-inner{display:flex}
-.ev-poster{width:88px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:34px;min-height:106px;position:relative;overflow:hidden}
+.ev-poster{width:88px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;
+  justify-content:center;font-size:34px;min-height:106px;position:relative;overflow:hidden}
 .ev-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ev-pe{position:relative;z-index:1}
 .ev-body{flex:1;padding:11px;display:flex;flex-direction:column;gap:4px}
@@ -94,24 +183,40 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .seat-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--bg4);color:var(--muted)}
 .seat-tag.low{color:var(--red);background:rgba(239,68,68,.1)}
 
-#pgDetail{z-index:20}
-.d-hero{height:185px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:66px;position:relative;overflow:hidden;flex-shrink:0}
+/* ── ДЕТАЛИ СОБЫТИЯ ── */
+.d-hero{height:185px;background:var(--bg3);display:flex;align-items:center;justify-content:center;
+  font-size:66px;position:relative;overflow:hidden;flex-shrink:0}
 .d-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:65px;background:linear-gradient(transparent,var(--bg))}
 .d-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .d-he{position:relative;z-index:1}
-.back-btn{position:absolute;top:12px;left:12px;z-index:10;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:none;border-radius:99px;color:#fff;font-size:13px;padding:7px 14px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background .2s;-webkit-appearance:none}
-.back-btn:active{background:rgba(0,0,0,.85);transform:scale(.95)}
+/* Кнопка назад внутри деталей — теперь красивая таблетка */
+.back-pill{
+  position:absolute;top:12px;left:12px;z-index:30;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:99px;color:#fff;font-size:13px;font-weight:600;
+  padding:8px 16px 8px 12px;
+  display:flex;align-items:center;gap:6px;
+  cursor:pointer;transition:all .18s;
+  -webkit-appearance:none;outline:none;
+}
+.back-pill:active{background:rgba(0,0,0,.85);transform:scale(.94)}
+.back-pill-arrow{font-size:16px;line-height:1}
 .d-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--a2);margin-bottom:5px}
 .d-title{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:800;line-height:1.2;margin-bottom:12px}
 .ig{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
 .ib{background:var(--bg2);border:1px solid var(--bdr);border-radius:11px;padding:9px}
 .ibl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
 .ibv{font-size:12px;font-weight:600}
-.d-desc{background:var(--bg2);border:1px solid var(--bdr);border-radius:11px;padding:11px;font-size:12px;line-height:1.6;color:var(--muted);margin-bottom:12px}
-.sec{font-family:'Unbounded',sans-serif;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.d-desc{background:var(--bg2);border:1px solid var(--bdr);border-radius:11px;padding:11px;
+  font-size:12px;line-height:1.6;color:var(--muted);margin-bottom:12px}
+.sec{font-family:'Unbounded',sans-serif;font-size:10px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 
+/* ── БИЛЕТЫ ── */
 .tt-list{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
-.tt-card{background:var(--bg2);border:2px solid var(--bdr);border-radius:13px;padding:11px 13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between}
+.tt-card{background:var(--bg2);border:2px solid var(--bdr);border-radius:13px;padding:11px 13px;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between}
 .tt-card.active-tt{border-color:var(--accent)!important;background:rgba(124,58,237,.08)!important}
 .tt-card.soldout{opacity:.4;cursor:not-allowed}
 .tt-card:not(.soldout):active{transform:scale(.98)}
@@ -119,30 +224,39 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .tt-av{font-size:10px;color:var(--muted)}
 .tt-av.low{color:var(--red)}
 .tt-pr{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;color:var(--green)}
-.tt-rd{width:19px;height:19px;border-radius:50%;border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .18s;flex-shrink:0;margin-left:8px}
+.tt-rd{width:19px;height:19px;border-radius:50%;border:2px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;font-size:10px;
+  transition:all .18s;flex-shrink:0;margin-left:8px}
 .tt-card.active-tt .tt-rd{background:var(--accent);border-color:var(--accent);color:#fff}
-.qty-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--bdr);border-radius:13px;padding:11px 13px;margin-bottom:13px}
+.qty-row{display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:13px;padding:11px 13px;margin-bottom:13px}
 .qty-lbl{font-size:13px;font-weight:600}
 .qty-ctrl{display:flex;align-items:center;gap:13px}
-.qty-btn{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg4);color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .13s}
+.qty-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--bg4);color:var(--txt);
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .13s}
 .qty-btn:active{background:var(--accent);transform:scale(.88)}
 .qty-n{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;min-width:22px;text-align:center}
 
-.sh-wrap{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
+/* ── ШТОРКИ ── */
+.sh-wrap{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
 .sh-wrap.on{pointer-events:all}
-.sh-ov{position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;transition:opacity .28s}
+.sh-ov{position:absolute;inset:0;background:rgba(0,0,0,.65);opacity:0;transition:opacity .28s}
 .sh-wrap.on .sh-ov{opacity:1}
-.sh-body{position:relative;z-index:1;background:var(--bg2);border-radius:22px 22px 0 0;border-top:1px solid var(--bdr);max-height:88vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .33s cubic-bezier(.34,1.56,.64,1)}
+.sh-body{position:relative;z-index:1;background:var(--bg2);border-radius:24px 24px 0 0;
+  border-top:1px solid var(--bdr);max-height:90vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .33s cubic-bezier(.34,1.56,.64,1)}
 .sh-wrap.on .sh-body{transform:translateY(0)}
-.sh-handle{width:36px;height:4px;background:var(--bdr);border-radius:99px;margin:9px auto 0}
-.sh-hdr{padding:11px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sh-handle{width:36px;height:4px;background:var(--bdr);border-radius:99px;margin:10px auto 0}
+.sh-hdr{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .sh-title{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700}
-.sh-x{background:var(--bg3);border:1px solid var(--bdr);border-radius:99px;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .18s}
+.sh-x{background:var(--bg3);border:1px solid var(--bdr);border-radius:99px;width:28px;height:28px;
+  cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .18s}
 .sh-x:active{background:var(--bg4)}
-.sh-scr{overflow-y:auto;flex:1;padding:11px}
+.sh-scr{overflow-y:auto;flex:1;padding:12px}
 .sh-scr::-webkit-scrollbar{display:none}
-.sh-foot{padding:9px 13px max(env(safe-area-inset-bottom),9px);border-top:1px solid var(--bdr);flex-shrink:0}
+.sh-foot{padding:10px 14px max(env(safe-area-inset-bottom),10px);border-top:1px solid var(--bdr);flex-shrink:0}
 
+/* ── КОРЗИНА ── */
 .ci{background:var(--bg3);border:1px solid var(--bdr);border-radius:13px;padding:11px;margin-bottom:7px;animation:fadeUp .22s ease both}
 .ci-title{font-weight:700;font-size:13px;margin-bottom:2px}
 .ci-sub{font-size:11px;color:var(--muted);margin-bottom:8px}
@@ -152,17 +266,21 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .total-lbl{font-size:12px;color:var(--muted)}
 .total-val{font-family:'Unbounded',sans-serif;font-size:20px;font-weight:800}
 
-#shSuccess .sh-body{background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(168,85,247,.08)),var(--bg2);text-align:center;padding:28px 20px max(env(safe-area-inset-bottom),24px)}
+/* ── УСПЕХ ── */
+#shSuccess .sh-body{
+  background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(168,85,247,.08)),var(--bg2);
+  text-align:center;padding:28px 20px max(env(safe-area-inset-bottom),24px)}
 .suc-ico{font-size:70px;display:block;margin-bottom:13px;animation:pop .45s .1s ease both}
 .suc-title{font-family:'Unbounded',sans-serif;font-size:19px;font-weight:800;margin-bottom:7px}
 .suc-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px}
 
-#pgSeller{z-index:10}
-.sel-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--bdr);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+/* ── КАБИНЕТ ── */
+.sel-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--bdr);
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none}
 .sel-tabs::-webkit-scrollbar{display:none}
-.s-tab{flex:1;min-width:65px;padding:11px 5px;text-align:center;font-size:10px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap}
+.s-tab{flex:1;min-width:65px;padding:11px 5px;text-align:center;font-size:10px;font-weight:600;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap}
 .s-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
-
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
 .stat-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;padding:13px;animation:fadeUp .3s ease both}
 .st-ico{font-size:22px;margin-bottom:5px}
@@ -171,17 +289,18 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .prog-bar{height:3px;background:var(--bg4);border-radius:99px;overflow:hidden;margin:6px 0 3px}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--a2));border-radius:99px;transition:width .55s ease}
 
+/* ── ФОРМЫ ── */
 .fld{margin-bottom:11px}
 .fl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block}
-.fi{width:100%;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:12px;padding:10px 13px;color:var(--txt);font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.fi{width:100%;background:var(--bg3);border:1.5px solid var(--bdr);border-radius:12px;padding:10px 13px;
+  color:var(--txt);font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s;-webkit-appearance:none}
 .fi:focus{border-color:var(--accent)}
 .fi::placeholder{color:var(--muted)}
 select.fi option{background:var(--bg2)}
 textarea.fi{resize:vertical;min-height:70px}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-
-/* ЗАГРУЗКА ИЗОБРАЖЕНИЯ */
-.img-upload{border:2px dashed var(--bdr);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:11px;position:relative;overflow:hidden}
+.img-upload{border:2px dashed var(--bdr);border-radius:14px;padding:18px;text-align:center;
+  cursor:pointer;transition:border-color .2s;margin-bottom:11px;position:relative;overflow:hidden}
 .img-upload:hover{border-color:var(--accent)}
 .img-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:8px;display:none}
@@ -190,38 +309,73 @@ textarea.fi{resize:vertical;min-height:70px}
 .img-upload-txt{font-size:12px;color:var(--muted)}
 .img-upload-url{margin-top:8px}
 
-.promo-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:13px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;animation:fadeUp .25s ease both}
+/* ── ПРОМО ── */
+.promo-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:13px;padding:11px 13px;
+  margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;animation:fadeUp .25s ease both}
 .pc{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;color:var(--a2)}
 .pi{font-size:10px;color:var(--muted);margin-top:2px}
 
-.scan-box{background:var(--bg2);border:2px dashed var(--bdr);border-radius:18px;padding:26px 14px;text-align:center;margin-bottom:13px;transition:border-color .28s}
+/* ── СКАНЕР ── */
+.scan-box{background:var(--bg2);border:2px dashed var(--bdr);border-radius:18px;padding:26px 14px;
+  text-align:center;margin-bottom:13px;transition:border-color .28s}
 .scan-box.act{border-color:var(--accent);animation:glow 2s ease infinite}
 .scan-res{background:var(--bg2);border-radius:13px;padding:13px;border:2px solid;margin-bottom:11px;animation:fadeUp .28s ease}
 .scan-res.ok{border-color:var(--green)}.scan-res.used{border-color:var(--red)}.scan-res.bad{border-color:var(--muted)}
 
-.skel{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
+/* ── СОБЫТИЯ КАБИНЕТА ── */
+.ev-mgmt-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:13px;padding:12px;margin-bottom:8px;animation:fadeUp .28s ease both}
+.ev-mgmt-title{font-weight:700;font-size:13px;margin-bottom:3px}
+.ev-mgmt-sub{font-size:11px;color:var(--muted);margin-bottom:9px}
+.ev-mgmt-foot{display:flex;gap:7px}
 
-.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-120px);background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:9px 16px;font-size:12px;font-weight:600;z-index:300;transition:transform .33s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+/* ── УТИЛИТЫ ── */
+.skel{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-120px);
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:9px 16px;
+  font-size:12px;font-weight:600;z-index:999;transition:transform .33s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.ok{border-color:var(--green);color:var(--green)}
 .toast.err{border-color:var(--red);color:var(--red)}
-
 .ld{width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 .empty{display:flex;flex-direction:column;align-items:center;padding:42px 14px;gap:9px;color:var(--muted);text-align:center}
 .empty-ico{font-size:48px;animation:bounce 2s ease-in-out infinite}
 .divider{height:1px;background:var(--bdr);margin:12px 0}
 .tag-hot{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--gold);color:#000;margin-left:5px}
-.ev-mgmt-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:13px;padding:12px;margin-bottom:8px;animation:fadeUp .28s ease both}
-.ev-mgmt-title{font-weight:700;font-size:13px;margin-bottom:3px}
-.ev-mgmt-sub{font-size:11px;color:var(--muted);margin-bottom:9px}
-.ev-mgmt-foot{display:flex;gap:7px}
 </style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
 
-<!-- ОНБОРДИНГ -->
+<!-- ══════════════ НИЖНИЙ ТАББАР ══════════════ -->
+<nav class="tabbar hide" id="mainTabbar">
+  <div class="tab-item active" id="tab-events" onclick="APP.tabNav('events')">
+    <div class="tab-icon-wrap">
+      <span class="tab-icon">🎫</span>
+    </div>
+    <span class="tab-label">События</span>
+    <span class="tab-dot"></span>
+  </div>
+  <div class="tab-item" id="tab-cart" onclick="APP.tabNav('cart')">
+    <div class="tab-icon-wrap">
+      <span class="tab-icon">🛒</span>
+      <span class="tab-badge" id="tabCartBadge"></span>
+    </div>
+    <span class="tab-label">Корзина</span>
+    <span class="tab-dot"></span>
+  </div>
+  <div class="tab-item" id="tab-cabinet" onclick="APP.tabNav('cabinet')">
+    <div class="tab-icon-wrap">
+      <span class="tab-icon">🏪</span>
+    </div>
+    <span class="tab-label">Кабинет</span>
+    <span class="tab-dot"></span>
+  </div>
+</nav>
+
+<!-- ══════════════ ОНБОРДИНГ ══════════════ -->
 <div class="page" id="pgOnboard">
   <span class="ob-ico">🎟</span>
   <div class="ob-logo">TicketBot</div>
@@ -240,29 +394,27 @@ textarea.fi{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- ПОКУПАТЕЛЬ -->
+<!-- ══════════════ СОБЫТИЯ ══════════════ -->
 <div class="page hide" id="pgBuyer">
   <div class="hdr">
     <div class="hdr-top">
       <div class="logo">🎟 TicketBot</div>
-      <div class="hbtns">
-        <div class="hbtn" id="cartBtn" onclick="APP.openCart()">🛒<span class="hbadge" id="cartBadge"></span></div>
-        <div class="hbtn" id="toSellerBtn" onclick="APP.switchRole()">🏪 Орг.</div>
-      </div>
     </div>
-    <div class="srch"><span class="srch-ic">🔍</span><input type="text" id="searchInput" placeholder="Поиск событий..." oninput="APP.filterEvents()"></div>
+    <div class="srch"><span class="srch-ic">🔍</span>
+      <input type="text" id="searchInput" placeholder="Поиск событий..." oninput="APP.filterEvents()">
+    </div>
     <div class="chips" id="chipsBar"></div>
   </div>
   <div class="scr" id="evList"></div>
-  <div class="bbar" id="buyerBBar" style="display:none">
-    <button class="btn bp" onclick="APP.openCart()">🛒 Корзина · <span id="cartSum"></span></button>
-  </div>
 </div>
 
-<!-- ДЕТАЛИ СОБЫТИЯ -->
+<!-- ══════════════ ДЕТАЛИ СОБЫТИЯ ══════════════ -->
 <div class="page hide" id="pgDetail">
   <div class="d-hero" id="dHero">
-    <button class="back-btn" id="detailBackBtn">← Назад</button>
+    <button class="back-pill" id="detailBackBtn">
+      <span class="back-pill-arrow">←</span>
+      <span>Назад</span>
+    </button>
     <span class="d-he" id="dEmoji"></span>
   </div>
   <div class="scr" style="padding-top:0">
@@ -283,12 +435,12 @@ textarea.fi{resize:vertical;min-height:70px}
       </div>
     </div>
   </div>
-  <div class="bbar">
+  <div style="padding:10px 14px max(env(safe-area-inset-bottom),10px);background:rgba(8,8,18,.95);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);flex-shrink:0">
     <button class="btn bp" id="addBtn" onclick="APP.addToCart()" disabled>Выберите тип билета</button>
   </div>
 </div>
 
-<!-- КОРЗИНА -->
+<!-- ══════════════ КОРЗИНА (ШТОРКА) ══════════════ -->
 <div class="sh-wrap" id="shCart">
   <div class="sh-ov" id="cartOv"></div>
   <div class="sh-body">
@@ -304,7 +456,7 @@ textarea.fi{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- УСПЕХ -->
+<!-- ══════════════ УСПЕХ ══════════════ -->
 <div class="sh-wrap" id="shSuccess">
   <div class="sh-ov"></div>
   <div class="sh-body">
@@ -316,14 +468,11 @@ textarea.fi{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- ПРОДАВЕЦ -->
+<!-- ══════════════ КАБИНЕТ ══════════════ -->
 <div class="page hide" id="pgSeller">
   <div class="hdr">
     <div class="hdr-top">
       <div class="logo">🏪 Кабинет</div>
-      <div class="hbtns">
-        <div class="hbtn" id="toBuyerBtn" onclick="APP.switchRole()">🎫 Покупатель</div>
-      </div>
     </div>
     <div class="sel-tabs" id="selTabs">
       <div class="s-tab on" onclick="APP.sellerTab('stats')">📊 Стат</div>
@@ -338,7 +487,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://changed-climate-well-collecting.trycloudflare.com",
+  API: " https://changed-climate-well-collecting.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -351,145 +500,188 @@ const TG_INIT_DATA = TG?.initData || '';
 const CAT = {all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"};
 
 const APP = (() => {
-  // ── СОСТОЯНИЕ ──
   let state = {
-    role:           '',
-    cart:           JSON.parse(localStorage.getItem('tb_cart') || '[]'),
-    events:         [],
-    curEvent:       null,
-    curTicketType:  null,
-    qty:            1,
-    filter:         'all',
-    currentSelTab:  'stats',
-    prevPage:       'pgBuyer',   // для кнопки назад
+    role:          '',
+    cart:          JSON.parse(localStorage.getItem('tb_cart') || '[]'),
+    events:        [],
+    curEvent:      null,
+    curTicketType: null,
+    qty:           1,
+    filter:        'all',
+    activeTab:     'events',
+    currentSelTab: 'stats',
   };
 
-  // ── ХЕЛПЕРЫ ──
+  // ── УТИЛИТЫ ──────────────────────────────────────
   function fmt(n){ return Number(n).toLocaleString('ru') + ' ' + CFG.CURRENCY; }
-  function haptic(t){ TG?.HapticFeedback?.selectionChanged?.(); if(t==='success') TG?.HapticFeedback?.notificationOccurred?.('success'); if(t==='error') TG?.HapticFeedback?.notificationOccurred?.('error'); }
+  function haptic(t){
+    TG?.HapticFeedback?.selectionChanged?.();
+    if(t==='success') TG?.HapticFeedback?.notificationOccurred?.('success');
+    if(t==='error')   TG?.HapticFeedback?.notificationOccurred?.('error');
+  }
   function showToast(msg, type=''){
-    const el=document.getElementById('toast');
-    el.textContent=msg; el.className='toast '+type+' show';
-    clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2700);
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + type + ' show';
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2700);
   }
 
-  // ── НАВИГАЦИЯ ──
-  // БАГ 1 ФИХ: goTo не зависит от state.role — просто показывает нужную страницу
+  // ── НАВИГАЦИЯ ─────────────────────────────────────
   function goTo(pageId){
-    document.querySelectorAll('.page').forEach(p=>{
+    document.querySelectorAll('.page').forEach(p => {
       p.classList.add('hide');
-      p.style.transition='none';
+      p.style.transition = 'none';
     });
-    const pg=document.getElementById(pageId);
-    if(!pg) return;
+    const pg = document.getElementById(pageId);
+    if (!pg) return;
     pg.classList.remove('hide');
-    pg.style.opacity='0';
-    pg.style.transform='translateX(14px)';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      pg.style.transition='opacity .25s,transform .25s';
-      pg.style.opacity='1';
-      pg.style.transform='translateX(0)';
+    pg.style.opacity = '0';
+    pg.style.transform = 'translateY(10px)';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      pg.style.transition = 'opacity .22s ease, transform .22s ease';
+      pg.style.opacity = '1';
+      pg.style.transform = 'translateY(0)';
     }));
   }
 
-  // ── РОЛЬ ── БАГ 1 ФИХ: смена роли не зависит от предыдущего состояния
-  function chooseRole(role){
+  // ── ТАББАР ────────────────────────────────────────
+  function tabNav(tab){
     haptic();
-    state.role=role;
-    localStorage.setItem('tb_role',role);
-    _applyRole(role);
-  }
-
-  function switchRole(){
-    haptic();
-    // Читаем текущую роль из state (не из localStorage чтобы не было рассинхрона)
-    const newRole = state.role==='buyer' ? 'seller' : 'buyer';
-    state.role=newRole;
-    localStorage.setItem('tb_role',newRole);
-    // Обновляем текст кнопок
-    _updateRoleBtns();
-    _applyRole(newRole);
-  }
-
-  function _applyRole(role){
-    _updateRoleBtns();
-    if(role==='buyer'){
+    // Если нажали корзину — открываем шторку, не меняем страницу
+    if(tab === 'cart'){
+      openCart();
+      return;
+    }
+    state.activeTab = tab;
+    // Обновляем активный таб
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tab)?.classList.add('active');
+    if(tab === 'events'){
+      if(state.role !== 'buyer') state.role = 'buyer';
+      localStorage.setItem('tb_role','buyer');
       loadEvents();
       goTo('pgBuyer');
-    } else {
+    } else if(tab === 'cabinet'){
+      if(state.role !== 'seller') state.role = 'seller';
+      localStorage.setItem('tb_role','seller');
       goTo('pgSeller');
       sellerTab('stats');
     }
   }
 
-  function _updateRoleBtns(){
-    // Обновляем текст кнопок переключения
-    const toSel = document.getElementById('toSellerBtn');
-    const toBuy = document.getElementById('toBuyerBtn');
-    if(toSel) toSel.textContent = '🏪 Орг.';
-    if(toBuy) toBuy.textContent = '🎫 Покупатель';
+  function _showTabbar(){ document.getElementById('mainTabbar')?.classList.remove('hide'); }
+  function _hideTabbar(){ document.getElementById('mainTabbar')?.classList.add('hide'); }
+
+  function _setActiveTab(tab){
+    state.activeTab = tab;
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tab)?.classList.add('active');
   }
 
-  // ── КНОПКА НАЗАД ── БАГ 2 ФИХ: вешаем через addEventListener а не onclick атрибут
-  function _initBackButtons(){
-    document.getElementById('detailBackBtn')?.addEventListener('click', ()=>{
+  // ── РОЛЬ ──────────────────────────────────────────
+  function chooseRole(role){
+    haptic();
+    state.role = role;
+    localStorage.setItem('tb_role', role);
+    _showTabbar();
+    if(role === 'buyer'){
+      _setActiveTab('events');
+      loadEvents();
+      goTo('pgBuyer');
+    } else {
+      _setActiveTab('cabinet');
+      goTo('pgSeller');
+      sellerTab('stats');
+    }
+  }
+
+  // switchRole оставлен для совместимости (теперь не используется в UI)
+  function switchRole(){
+    const newRole = state.role === 'buyer' ? 'seller' : 'buyer';
+    chooseRole(newRole);
+  }
+
+  // ── ИНИЦИАЛИЗАЦИЯ КНОПКИ НАЗАД ────────────────────
+  function _initEvents(){
+    // Кнопка назад в деталях события
+    document.getElementById('detailBackBtn')?.addEventListener('click', () => {
       haptic();
+      _setActiveTab('events');
       goTo('pgBuyer');
     });
     // Оверлей корзины
     document.getElementById('cartOv')?.addEventListener('click', closeCart);
   }
 
-  // ── API ──
-  async function apiFetch(path, options={}){
-    const headers={'Content-Type':'application/json','X-User-Id':TG_USER_ID||'','X-Init-Data':TG_INIT_DATA,...(options.headers||{})};
-    const resp=await fetch(CFG.API+path,{...options,headers});
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
+  // ── API ───────────────────────────────────────────
+  async function apiFetch(path, options = {}){
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-User-Id':    TG_USER_ID || '',
+      'X-Init-Data':  TG_INIT_DATA,
+      ...(options.headers || {})
+    };
+    const resp = await fetch(CFG.API + path, { ...options, headers });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     return resp.json();
   }
 
-  // ── СОБЫТИЯ ──
+  // ── СОБЫТИЯ ───────────────────────────────────────
   async function loadEvents(){
     renderSkeletons();
-    try{ const data=await apiFetch('/api/events'); state.events=data; }
-    catch{ state.events=DEMO_EVENTS; }
-    renderChips(); filterEvents();
+    try { const data = await apiFetch('/api/events'); state.events = data; }
+    catch { state.events = DEMO_EVENTS; }
+    renderChips();
+    filterEvents();
   }
 
   function renderSkeletons(){
-    document.getElementById('evList').innerHTML='<div class="ev-list">'+[1,2,3].map(i=>`
-      <div class="ev-card" style="animation-delay:${i*.08}s">
-        <div class="ev-inner">
-          <div class="ev-poster skel" style="min-height:106px;width:88px"></div>
-          <div class="ev-body" style="gap:8px">${[55,88,68,48].map(w=>`<div class="skel" style="height:9px;width:${w}%"></div>`).join('')}</div>
-        </div>
-      </div>`).join('')+'</div>';
+    document.getElementById('evList').innerHTML =
+      '<div class="ev-list">' + [1,2,3].map(i => `
+        <div class="ev-card" style="animation-delay:${i*.08}s">
+          <div class="ev-inner">
+            <div class="ev-poster skel" style="min-height:106px;width:88px"></div>
+            <div class="ev-body" style="gap:8px">
+              ${[55,88,68,48].map(w => `<div class="skel" style="height:9px;width:${w}%"></div>`).join('')}
+            </div>
+          </div>
+        </div>`).join('') + '</div>';
   }
 
   function renderChips(){
-    const cats=['all',...new Set(state.events.map(e=>e.category))];
-    document.getElementById('chipsBar').innerHTML=cats.map(c=>`<div class="chip ${c===state.filter?'on':''}" onclick="APP.setFilter('${c}')">${CAT[c]||c}</div>`).join('');
+    const cats = ['all', ...new Set(state.events.map(e => e.category))];
+    document.getElementById('chipsBar').innerHTML =
+      cats.map(c => `<div class="chip ${c===state.filter?'on':''}" onclick="APP.setFilter('${c}')">${CAT[c]||c}</div>`).join('');
   }
 
-  function setFilter(c){ state.filter=c; haptic(); renderChips(); filterEvents(); }
+  function setFilter(c){ state.filter = c; haptic(); renderChips(); filterEvents(); }
 
   function filterEvents(){
-    const q=(document.getElementById('searchInput')?.value||'').toLowerCase();
-    const f=state.events.filter(e=>(state.filter==='all'||e.category===state.filter)&&(!q||e.title.toLowerCase().includes(q)||(e.city||'').toLowerCase().includes(q)));
+    const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const f = state.events.filter(e =>
+      (state.filter === 'all' || e.category === state.filter) &&
+      (!q || e.title.toLowerCase().includes(q) || (e.city||'').toLowerCase().includes(q))
+    );
     renderEvents(f);
   }
 
   function renderEvents(list){
-    const el=document.getElementById('evList');
-    if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-ico">🔍</div><div>Ничего не найдено</div></div>'; return; }
-    el.innerHTML='<div class="ev-list">'+list.map((ev,i)=>{
-      const mp=Math.min(...ev.ticket_types.map(t=>t.price));
-      const ta=ev.ticket_types.reduce((s,t)=>s+t.available,0);
-      const low=ta<=20;
-      return`<div class="ev-card" style="animation-delay:${i*.05}s" onclick="APP.openEvent(${ev.id})">
+    const el = document.getElementById('evList');
+    if(!list.length){
+      el.innerHTML = '<div class="empty"><div class="empty-ico">🔍</div><div>Ничего не найдено</div></div>';
+      return;
+    }
+    el.innerHTML = '<div class="ev-list">' + list.map((ev, i) => {
+      const mp  = Math.min(...ev.ticket_types.map(t => t.price));
+      const ta  = ev.ticket_types.reduce((s,t) => s + t.available, 0);
+      const low = ta <= 20;
+      return `<div class="ev-card" style="animation-delay:${i*.05}s" onclick="APP.openEvent(${ev.id})">
         <div class="ev-inner">
-          <div class="ev-poster">${ev.poster_url?`<img src="${ev.poster_url}" loading="lazy">`:''}
-            <span class="ev-pe">${ev.emoji||'🎡'}</span></div>
+          <div class="ev-poster">
+            ${ev.poster_url ? `<img src="${ev.poster_url}" loading="lazy">` : ''}
+            <span class="ev-pe">${ev.emoji||'🎡'}</span>
+          </div>
           <div class="ev-body">
             <div class="ev-cat">${CAT[ev.category]||ev.category}</div>
             <div class="ev-title">${ev.title}</div>
@@ -502,223 +694,297 @@ const APP = (() => {
           </div>
         </div>
       </div>`;
-    }).join('')+'</div>';
+    }).join('') + '</div>';
   }
 
-  // ── ДЕТАЛИ ──
+  // ── ДЕТАЛИ СОБЫТИЯ ────────────────────────────────
   function openEvent(id){
-    const ev=state.events.find(e=>e.id===id); if(!ev) return;
-    state.curEvent=ev; state.curTicketType=null; state.qty=1;
-    const hero=document.getElementById('dHero');
-    hero.querySelectorAll('img').forEach(i=>i.remove());
-    if(ev.poster_url){ const img=new Image(); img.src=ev.poster_url; img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; hero.appendChild(img); }
-    document.getElementById('dEmoji').textContent=ev.emoji||'🎡';
-    document.getElementById('dCat').textContent=CAT[ev.category]||ev.category;
-    document.getElementById('dTitle').textContent=ev.title;
-    document.getElementById('qtyNum').textContent='1';
-    const dd=document.getElementById('dDesc');
-    if(ev.description){ dd.style.display='block'; dd.textContent=ev.description; } else dd.style.display='none';
-    document.getElementById('dGrid').innerHTML=`
+    const ev = state.events.find(e => e.id === id);
+    if(!ev) return;
+    state.curEvent = ev; state.curTicketType = null; state.qty = 1;
+
+    const hero = document.getElementById('dHero');
+    hero.querySelectorAll('img').forEach(i => i.remove());
+    if(ev.poster_url){
+      const img = new Image();
+      img.src = ev.poster_url;
+      img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+      hero.appendChild(img);
+    }
+    document.getElementById('dEmoji').textContent = ev.emoji || '🎡';
+    document.getElementById('dCat').textContent   = CAT[ev.category] || ev.category;
+    document.getElementById('dTitle').textContent = ev.title;
+    document.getElementById('qtyNum').textContent = '1';
+
+    const dd = document.getElementById('dDesc');
+    if(ev.description){ dd.style.display='block'; dd.textContent=ev.description; }
+    else dd.style.display='none';
+
+    document.getElementById('dGrid').innerHTML = `
       <div class="ib"><div class="ibl">📅 Дата</div><div class="ibv">${ev.date}</div></div>
       <div class="ib"><div class="ibl">🕐 Время</div><div class="ibv">${ev.time}</div></div>
       <div class="ib"><div class="ibl">📍 Место</div><div class="ibv">${ev.venue}</div></div>
       <div class="ib"><div class="ibl">🔞 Возраст</div><div class="ibv">${ev.age_rating}</div></div>`;
-    document.getElementById('ttList').innerHTML=ev.ticket_types.map(tt=>{
-      const so=tt.available===0, low=!so&&tt.available<=10;
-      return`<div class="tt-card ${so?'soldout':''}" id="tt_${tt.id}" onclick="${so?'':(`APP.selectTicket(${tt.id})`)}">
-        <div><div class="tt-nm">${tt.name}${low?'<span class="tag-hot">Мало</span>':''}</div>
-        <div class="tt-av ${low?'low':''}">${so?'Нет мест':`${tt.available}/${tt.total} мест`}</div></div>
-        <div style="display:flex;align-items:center"><div class="tt-pr">${fmt(tt.price)}</div>
-        <div class="tt-rd" id="rd_${tt.id}">${so?'✕':''}</div></div>
+
+    document.getElementById('ttList').innerHTML = ev.ticket_types.map(tt => {
+      const so  = tt.available === 0;
+      const low = !so && tt.available <= 10;
+      return `<div class="tt-card ${so?'soldout':''}" id="tt_${tt.id}" onclick="${so ? '' : `APP.selectTicket(${tt.id})`}">
+        <div>
+          <div class="tt-nm">${tt.name}${low?'<span class="tag-hot">Мало</span>':''}</div>
+          <div class="tt-av ${low?'low':''}">${so ? 'Нет мест' : `${tt.available}/${tt.total} мест`}</div>
+        </div>
+        <div style="display:flex;align-items:center">
+          <div class="tt-pr">${fmt(tt.price)}</div>
+          <div class="tt-rd" id="rd_${tt.id}">${so?'✕':''}</div>
+        </div>
       </div>`;
     }).join('');
-    updateAddBtn(); haptic(); goTo('pgDetail');
+
+    updateAddBtn(); haptic();
+    goTo('pgDetail');
   }
 
   function selectTicket(ttId){
     if(!state.curEvent) return;
-    const tt=state.curEvent.ticket_types.find(t=>t.id===ttId);
-    if(!tt||tt.available===0) return;
-    state.curTicketType=tt; state.qty=1;
-    state.curEvent.ticket_types.forEach(t=>{
+    const tt = state.curEvent.ticket_types.find(t => t.id === ttId);
+    if(!tt || tt.available === 0) return;
+    state.curTicketType = tt; state.qty = 1;
+    state.curEvent.ticket_types.forEach(t => {
       document.getElementById('tt_'+t.id)?.classList.remove('active-tt');
-      const rd=document.getElementById('rd_'+t.id); if(rd&&t.available>0) rd.textContent='';
+      const rd = document.getElementById('rd_'+t.id);
+      if(rd && t.available > 0) rd.textContent = '';
     });
     document.getElementById('tt_'+ttId)?.classList.add('active-tt');
-    const rd=document.getElementById('rd_'+ttId); if(rd) rd.textContent='✓';
-    document.getElementById('qtyNum').textContent='1';
+    const rd = document.getElementById('rd_'+ttId);
+    if(rd) rd.textContent = '✓';
+    document.getElementById('qtyNum').textContent = '1';
     haptic(); updateAddBtn();
   }
 
   function changeQty(d){
     if(!state.curTicketType) return;
-    state.qty=Math.max(1,Math.min(Math.min(state.curTicketType.available,CFG.MAX_QTY),state.qty+d));
-    document.getElementById('qtyNum').textContent=state.qty;
+    state.qty = Math.max(1, Math.min(Math.min(state.curTicketType.available, CFG.MAX_QTY), state.qty + d));
+    document.getElementById('qtyNum').textContent = state.qty;
     haptic(); updateAddBtn();
   }
 
   function updateAddBtn(){
-    const b=document.getElementById('addBtn'); if(!b) return;
-    if(!state.curTicketType){ b.textContent='Выберите тип билета'; b.disabled=true; }
-    else{ b.textContent=`🛒 В корзину — ${fmt(state.curTicketType.price*state.qty)}`; b.disabled=false; }
+    const b = document.getElementById('addBtn'); if(!b) return;
+    if(!state.curTicketType){
+      b.textContent = 'Выберите тип билета'; b.disabled = true;
+    } else {
+      b.textContent = `🛒 В корзину — ${fmt(state.curTicketType.price * state.qty)}`; b.disabled = false;
+    }
   }
 
-  // ── КОРЗИНА ──
+  // ── КОРЗИНА ───────────────────────────────────────
   function addToCart(){
-    if(!state.curTicketType||!state.curEvent) return;
-    const ev=state.curEvent, tt=state.curTicketType;
-    const ex=state.cart.find(c=>c.tt_id===tt.id);
-    if(ex) ex.qty=Math.min(ex.qty+state.qty,CFG.MAX_QTY);
-    else state.cart.push({event_id:ev.id,event_title:ev.title,event_date:ev.date,event_time:ev.time,event_age:ev.age_rating,venue:ev.venue,tt_id:tt.id,tt_name:tt.name,price:tt.price,qty:state.qty});
-    saveCart(); haptic('success'); showToast('✅ Добавлено в корзину!','ok'); goTo('pgBuyer');
+    if(!state.curTicketType || !state.curEvent) return;
+    const ev = state.curEvent, tt = state.curTicketType;
+    const ex = state.cart.find(c => c.tt_id === tt.id);
+    if(ex) ex.qty = Math.min(ex.qty + state.qty, CFG.MAX_QTY);
+    else state.cart.push({
+      event_id: ev.id, event_title: ev.title, event_date: ev.date,
+      event_time: ev.time, event_age: ev.age_rating, venue: ev.venue,
+      tt_id: tt.id, tt_name: tt.name, price: tt.price, qty: state.qty
+    });
+    saveCart(); haptic('success');
+    showToast('✅ Добавлено в корзину!', 'ok');
+    _setActiveTab('events');
+    goTo('pgBuyer');
   }
 
-  function saveCart(){ localStorage.setItem('tb_cart',JSON.stringify(state.cart)); updateCartUI(); }
+  function saveCart(){
+    localStorage.setItem('tb_cart', JSON.stringify(state.cart));
+    updateCartUI();
+  }
 
   function updateCartUI(){
-    const tq=state.cart.reduce((s,i)=>s+i.qty,0), ts=state.cart.reduce((s,i)=>s+i.price*i.qty,0);
-    const b=document.getElementById('cartBadge'); if(b){ b.textContent=tq; b.classList.toggle('on',tq>0); }
-    const bb=document.getElementById('buyerBBar'); if(bb) bb.style.display=state.cart.length?'block':'none';
-    const cs=document.getElementById('cartSum'); if(cs) cs.textContent=ts>0?fmt(ts):'';
+    const tq = state.cart.reduce((s,i) => s + i.qty, 0);
+    // Бейдж на вкладке корзины
+    const b = document.getElementById('tabCartBadge');
+    if(b){ b.textContent = tq; b.classList.toggle('on', tq > 0); }
   }
 
-  function openCart(){ renderCartContent(); document.getElementById('shCart').classList.add('on'); }
-  function closeCart(){ document.getElementById('shCart').classList.remove('on'); }
+  function openCart(){
+    renderCartContent();
+    document.getElementById('shCart').classList.add('on');
+  }
+  function closeCart(){
+    document.getElementById('shCart').classList.remove('on');
+  }
 
-  function removeFromCart(ttId){ state.cart=state.cart.filter(i=>i.tt_id!==ttId); saveCart(); renderCartContent(); haptic(); }
+  function removeFromCart(ttId){
+    state.cart = state.cart.filter(i => i.tt_id !== ttId);
+    saveCart(); renderCartContent(); haptic();
+  }
 
   function renderCartContent(){
-    const c=document.getElementById('cartContent'), pb=document.getElementById('payBtn');
-    if(!state.cart.length){ c.innerHTML='<div class="empty"><div class="empty-ico">🛒</div><div>Корзина пуста</div></div>'; pb.disabled=true; pb.textContent='Корзина пуста'; return; }
-    const tot=state.cart.reduce((s,i)=>s+i.price*i.qty,0);
-    pb.disabled=false; pb.textContent=`💳 Оплатить — ${fmt(tot)}`;
-    c.innerHTML=state.cart.map(it=>`
+    const c = document.getElementById('cartContent');
+    const pb = document.getElementById('payBtn');
+    if(!state.cart.length){
+      c.innerHTML = '<div class="empty"><div class="empty-ico">🛒</div><div>Корзина пуста</div></div>';
+      pb.disabled = true; pb.textContent = 'Корзина пуста'; return;
+    }
+    const tot = state.cart.reduce((s,i) => s + i.price * i.qty, 0);
+    pb.disabled = false; pb.textContent = `💳 Оплатить — ${fmt(tot)}`;
+    c.innerHTML = state.cart.map(it => `
       <div class="ci">
         <div class="ci-title">${it.event_title}</div>
         <div class="ci-sub">🎫 ${it.tt_name} × ${it.qty} шт · 📅 ${it.event_date} ${it.event_time}</div>
-        <div class="ci-foot"><div class="ci-price">${fmt(it.price*it.qty)}</div>
-        <button class="btn bd bsm" onclick="APP.removeFromCart(${it.tt_id})">✕ Убрать</button></div>
-      </div>`).join('')+
-      `<div class="total-row"><span class="total-lbl">Итого</span><span class="total-val">${fmt(tot)}</span></div>`;
+        <div class="ci-foot">
+          <div class="ci-price">${fmt(it.price * it.qty)}</div>
+          <button class="btn bd bsm" onclick="APP.removeFromCart(${it.tt_id})">✕ Убрать</button>
+        </div>
+      </div>`).join('') +
+      `<div class="total-row">
+        <span class="total-lbl">Итого</span>
+        <span class="total-val">${fmt(tot)}</span>
+      </div>`;
   }
 
-  // ── ОПЛАТА ──
+  // ── ОПЛАТА ────────────────────────────────────────
   async function pay(){
     if(!state.cart.length) return;
-    const btn=document.getElementById('payBtn'); btn.disabled=true; btn.innerHTML='<div class="ld"></div>';
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true; btn.innerHTML = '<div class="ld"></div>';
     haptic();
     try{
-      await apiFetch('/api/order',{method:'POST',body:JSON.stringify({user_id:TG_USER_ID,items:state.cart,total:state.cart.reduce((s,i)=>s+i.price*i.qty,0)})});
-    }catch(e){
-      if(TG) try{ TG.sendData(JSON.stringify({action:'order',items:state.cart,user_id:TG_USER_ID})); }catch{}
+      await apiFetch('/api/order', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: TG_USER_ID,
+          items:   state.cart,
+          total:   state.cart.reduce((s,i) => s + i.price * i.qty, 0)
+        })
+      });
+    } catch(e){
+      if(TG) try{ TG.sendData(JSON.stringify({action:'order', items:state.cart, user_id:TG_USER_ID})); }catch{}
     }
-    state.cart=[]; saveCart(); closeCart();
-    setTimeout(()=>{ document.getElementById('shSuccess').classList.add('on'); haptic('success'); },320);
+    state.cart = []; saveCart(); closeCart();
+    setTimeout(() => {
+      document.getElementById('shSuccess').classList.add('on');
+      haptic('success');
+    }, 320);
   }
 
-  function closeSuccess(){ document.getElementById('shSuccess').classList.remove('on'); goTo('pgBuyer'); }
+  function closeSuccess(){
+    document.getElementById('shSuccess').classList.remove('on');
+    _setActiveTab('events');
+    goTo('pgBuyer');
+  }
 
-  // ═══════════════ ПРОДАВЕЦ ═══════════════
+  // ══════════════ КАБИНЕТ ══════════════
 
   function sellerTab(tab){
-    state.currentSelTab=tab;
-    const tabs=['stats','events','add','scan','promo'];
-    document.querySelectorAll('.s-tab').forEach((el,i)=>el.classList.toggle('on',tabs[i]===tab));
+    state.currentSelTab = tab;
+    const tabs = ['stats','events','add','scan','promo'];
+    document.querySelectorAll('.s-tab').forEach((el,i) => el.classList.toggle('on', tabs[i] === tab));
     haptic();
-    ({stats:renderStats,events:renderMyEvents,add:renderAddEvent,scan:renderScanner,promo:renderPromos}[tab])?.();
+    ({stats:renderStats, events:renderMyEvents, add:renderAddEvent, scan:renderScanner, promo:renderPromos}[tab])?.();
   }
 
-  // ── СТАТИСТИКА ──
+  // ── СТАТИСТИКА ────────────────────────────────────
   async function renderStats(){
-    const c=document.getElementById('selContent');
-    c.innerHTML='<div class="empty"><div class="ld"></div></div>';
-    let st={users:0,orders:0,revenue:0,tickets:0};
-    try{ st=await apiFetch('/api/admin/stats'); }catch{}
-    c.innerHTML=`<div class="stat-grid">
-      ${[['👥',st.users,'Пользователей'],['🛒',st.orders,'Заказов'],['🎟',st.tickets,'Билетов'],['💰',fmt(st.revenue),'Выручка']].map((s,i)=>`
-      <div class="stat-card" style="animation-delay:${i*.07}s">
-        <div class="st-ico">${s[0]}</div><div class="st-val">${typeof s[1]==='number'?s[1].toLocaleString('ru'):s[1]}</div>
-        <div class="st-lbl">${s[2]}</div>
-      </div>`).join('')}
-    </div>
-    <button class="btn bp" onclick="APP.sellerTab('events')" style="margin-bottom:16px">📅 Управление событиями</button>`;
+    const c = document.getElementById('selContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    let st = {users:0, orders:0, revenue:0, tickets:0};
+    try { st = await apiFetch('/api/admin/stats'); } catch {}
+    c.innerHTML = `
+      <div class="stat-grid">
+        ${[['👥',st.users,'Пользователей'],['🛒',st.orders,'Заказов'],['🎟',st.tickets,'Билетов'],['💰',fmt(st.revenue),'Выручка']].map((s,i) => `
+        <div class="stat-card" style="animation-delay:${i*.07}s">
+          <div class="st-ico">${s[0]}</div>
+          <div class="st-val">${typeof s[1]==='number' ? s[1].toLocaleString('ru') : s[1]}</div>
+          <div class="st-lbl">${s[2]}</div>
+        </div>`).join('')}
+      </div>
+      <button class="btn bp" onclick="APP.sellerTab('events')" style="margin-bottom:16px">📅 Управление событиями</button>`;
   }
 
-  // ── МОИ СОБЫТИЯ ──
+  // ── МОИ СОБЫТИЯ ───────────────────────────────────
   async function renderMyEvents(){
-    const c=document.getElementById('selContent');
-    c.innerHTML='<div class="empty"><div class="ld"></div></div>';
-    let evs=[];
-    try{ evs=await apiFetch('/api/events'); }catch{ evs=state.events; }
-    if(!evs.length){ c.innerHTML='<div class="empty"><div class="empty-ico">📭</div><div>Нет событий</div></div><button class="btn bp" onclick="APP.sellerTab(\'add\')" style="margin:16px 0">➕ Добавить</button>'; return; }
-    c.innerHTML='<div class="sec">📅 Все события</div>'+evs.map((ev,i)=>{
-      const sold=ev.ticket_types.reduce((s,t)=>s+(t.total-t.available),0);
-      const tot=ev.ticket_types.reduce((s,t)=>s+t.total,0);
-      const pct=tot>0?Math.round(sold/tot*100):0;
-      const rev=ev.ticket_types.reduce((s,t)=>s+(t.total-t.available)*t.price,0);
-      return`<div class="ev-mgmt-card" style="animation-delay:${i*.06}s">
+    const c = document.getElementById('selContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    let evs = [];
+    try { evs = await apiFetch('/api/events'); } catch { evs = state.events; }
+    if(!evs.length){
+      c.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div>Нет событий</div></div>' +
+        '<button class="btn bp" onclick="APP.sellerTab(\'add\')" style="margin:16px 0">➕ Добавить</button>';
+      return;
+    }
+    c.innerHTML = '<div class="sec">📅 Все события</div>' + evs.map((ev, i) => {
+      const sold = ev.ticket_types.reduce((s,t) => s + (t.total - t.available), 0);
+      const tot  = ev.ticket_types.reduce((s,t) => s + t.total, 0);
+      const pct  = tot > 0 ? Math.round(sold/tot*100) : 0;
+      const rev  = ev.ticket_types.reduce((s,t) => s + (t.total-t.available)*t.price, 0);
+      return `<div class="ev-mgmt-card" style="animation-delay:${i*.06}s">
         <div class="ev-mgmt-title">${ev.emoji||'🎡'} ${ev.title}</div>
         <div class="ev-mgmt-sub">📅 ${ev.date} · 📍 ${ev.venue}, ${ev.city}</div>
         <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:10px">
-          <span>Продано ${sold}/${tot} (${pct}%)</span><span style="color:var(--green);font-weight:700">${fmt(rev)}</span>
+          <span>Продано ${sold}/${tot} (${pct}%)</span>
+          <span style="color:var(--green);font-weight:700">${fmt(rev)}</span>
         </div>
         <div class="ev-mgmt-foot">
           <button class="btn bs bsm" onclick="APP.editEvent(${ev.id})" style="flex:1">✏️ Изменить</button>
           <button class="btn bd bsm" onclick="APP.deleteEvent(${ev.id})" style="flex:1">🗑 Удалить</button>
         </div>
       </div>`;
-    }).join('')+'<button class="btn bp" onclick="APP.sellerTab(\'add\')" style="margin-top:8px;margin-bottom:16px">➕ Добавить событие</button>';
+    }).join('') +
+    '<button class="btn bp" onclick="APP.sellerTab(\'add\')" style="margin-top:8px;margin-bottom:16px">➕ Добавить событие</button>';
   }
 
   async function deleteEvent(id){
     if(!confirm('Удалить это событие?')) return;
-    try{ await apiFetch(`/api/admin/event/${id}`,{method:'DELETE'}); }catch{}
-    state.events=state.events.filter(e=>e.id!==id);
-    haptic('success'); showToast('🗑 Событие удалено','ok'); renderMyEvents();
+    try { await apiFetch(`/api/admin/event/${id}`, {method:'DELETE'}); } catch {}
+    state.events = state.events.filter(e => e.id !== id);
+    haptic('success'); showToast('🗑 Событие удалено', 'ok'); renderMyEvents();
   }
 
   function editEvent(id){
-    const ev=state.events.find(e=>e.id===id); if(!ev) return;
+    const ev = state.events.find(e => e.id === id); if(!ev) return;
     sellerTab('add');
-    setTimeout(()=>_fillEventForm(ev),150);
+    setTimeout(() => _fillEventForm(ev), 150);
   }
 
   function _fillEventForm(ev){
-    const g=id=>document.getElementById(id);
-    if(g('evId'))    g('evId').value=ev.id;
-    if(g('evTitle')) g('evTitle').value=ev.title;
-    if(g('evDesc'))  g('evDesc').value=ev.description||'';
-    if(g('evEmoji')) g('evEmoji').value=ev.emoji||'';
-    if(g('evCat'))   g('evCat').value=ev.category;
-    if(g('evAge'))   g('evAge').value=ev.age_rating;
-    if(g('evVenue')) g('evVenue').value=ev.venue;
-    if(g('evCity'))  g('evCity').value=ev.city;
-    if(g('evDate')){ const p=ev.date.split('.'); if(p.length===3) g('evDate').value=`${p[2]}-${p[1]}-${p[0]}`; }
-    if(g('evTime'))  g('evTime').value=ev.time;
-    // Показать текущий постер
+    const g = id => document.getElementById(id);
+    if(g('evId'))       g('evId').value = ev.id;
+    if(g('evTitle'))    g('evTitle').value = ev.title;
+    if(g('evDesc'))     g('evDesc').value = ev.description || '';
+    if(g('evEmoji'))    g('evEmoji').value = ev.emoji || '';
+    if(g('evCat'))      g('evCat').value = ev.category;
+    if(g('evAge'))      g('evAge').value = ev.age_rating;
+    if(g('evVenue'))    g('evVenue').value = ev.venue;
+    if(g('evCity'))     g('evCity').value = ev.city;
+    if(g('evDate')){
+      const p = ev.date.split('.');
+      if(p.length === 3) g('evDate').value = `${p[2]}-${p[1]}-${p[0]}`;
+    }
+    if(g('evTime'))     g('evTime').value = ev.time;
     if(ev.poster_url){
-      const prev=document.getElementById('imgPreview');
-      if(prev){ prev.src=ev.poster_url; prev.classList.add('on'); }
-      const urlIn=document.getElementById('evPosterUrl');
-      if(urlIn) urlIn.value=ev.poster_url;
+      const prev = document.getElementById('imgPreview');
+      if(prev){ prev.src = ev.poster_url; prev.classList.add('on'); }
+      const urlIn = document.getElementById('evPosterUrl');
+      if(urlIn) urlIn.value = ev.poster_url;
     }
-    const tt=ev.ticket_types?.[0];
+    const tt = ev.ticket_types?.[0];
     if(tt){
-      if(g('ttName'))  g('ttName').value=tt.name;
-      if(g('ttPrice')) g('ttPrice').value=tt.price;
-      if(g('ttSeats')) g('ttSeats').value=tt.total;
+      if(g('ttName'))  g('ttName').value = tt.name;
+      if(g('ttPrice')) g('ttPrice').value = tt.price;
+      if(g('ttSeats')) g('ttSeats').value = tt.total;
     }
-    const btn=document.getElementById('submitEvBtn');
-    if(btn) btn.textContent='💾 Сохранить изменения';
+    const btn = document.getElementById('submitEvBtn');
+    if(btn) btn.textContent = '💾 Сохранить изменения';
   }
 
-  // ── ДОБАВИТЬ СОБЫТИЕ (БАГ 5: баннер) ──
+  // ── ДОБАВИТЬ СОБЫТИЕ ──────────────────────────────
   function renderAddEvent(){
-    document.getElementById('selContent').innerHTML=`
+    document.getElementById('selContent').innerHTML = `
       <div class="sec">➕ Новое событие</div>
       <input type="hidden" id="evId" value="">
-
       <div class="fld">
         <label class="fl">🖼 Баннер мероприятия</label>
         <div class="img-upload" id="imgUploadBox">
@@ -732,7 +998,6 @@ const APP = (() => {
           <input class="fi" type="url" id="evPosterUrl" placeholder="https://example.com/image.jpg" oninput="APP.handlePosterUrl(this.value)">
         </div>
       </div>
-
       <div class="fld"><label class="fl">Название</label><input class="fi" id="evTitle" placeholder="Imagine Dragons Live"></div>
       <div class="fld"><label class="fl">Описание</label><textarea class="fi" id="evDesc" placeholder="Краткое описание..."></textarea></div>
       <div class="fld"><label class="fl">Эмодзи</label><input class="fi" id="evEmoji" placeholder="🎵" maxlength="2"></div>
@@ -765,125 +1030,141 @@ const APP = (() => {
       <div style="height:20px"></div>`;
   }
 
-  // БАГ 5: загрузка изображения
   function handleImageUpload(input){
-    const file=input.files[0]; if(!file) return;
-    if(file.size>5*1024*1024){ showToast('❌ Файл слишком большой (макс 5MB)','err'); return; }
-    const reader=new FileReader();
-    reader.onload=e=>{
-      const prev=document.getElementById('imgPreview');
-      if(prev){ prev.src=e.target.result; prev.classList.add('on'); }
-      // Сохраняем base64 в скрытое поле для отправки
-      let urlField=document.getElementById('evPosterUrl');
-      if(urlField) urlField.dataset.base64=e.target.result;
-      showToast('✅ Фото выбрано','ok');
+    const file = input.files[0]; if(!file) return;
+    if(file.size > 5*1024*1024){ showToast('❌ Файл слишком большой (макс 5MB)','err'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const prev = document.getElementById('imgPreview');
+      if(prev){ prev.src = e.target.result; prev.classList.add('on'); }
+      const urlField = document.getElementById('evPosterUrl');
+      if(urlField) urlField.dataset.base64 = e.target.result;
+      showToast('✅ Фото выбрано', 'ok');
     };
     reader.readAsDataURL(file);
   }
 
   function handlePosterUrl(url){
     if(!url) return;
-    const prev=document.getElementById('imgPreview');
-    if(prev){ prev.src=url; prev.classList.add('on'); }
+    const prev = document.getElementById('imgPreview');
+    if(prev){ prev.src = url; prev.classList.add('on'); }
   }
 
   async function submitEvent(){
-    const g=id=>document.getElementById(id)?.value?.trim()||'';
-    const evId=g('evId'), title=g('evTitle'), venue=g('evVenue'), city=g('evCity');
-    const dateVal=g('evDate'), ttName=g('ttName');
-    const ttPrice=parseFloat(g('ttPrice')), ttSeats=parseInt(g('ttSeats'));
-    if(!title||!venue||!city||!dateVal||!ttName||!ttPrice||!ttSeats){ showToast('❌ Заполните все обязательные поля','err'); return; }
-    const dp=dateVal.split('-');
-    const dateFormatted=dp.length===3?`${dp[2]}.${dp[1]}.${dp[0]}`:dateVal;
-
-    // Получаем URL постера
-    const urlField=document.getElementById('evPosterUrl');
-    let posterUrl=urlField?.value?.trim()||'';
-    // Если был загружен файл — используем base64
-    if(urlField?.dataset?.base64) posterUrl=urlField.dataset.base64;
-
-    const payload={
+    const g = id => document.getElementById(id)?.value?.trim() || '';
+    const evId    = g('evId');
+    const title   = g('evTitle'), venue = g('evVenue'), city = g('evCity');
+    const dateVal = g('evDate'), ttName = g('ttName');
+    const ttPrice = parseFloat(g('ttPrice')), ttSeats = parseInt(g('ttSeats'));
+    if(!title||!venue||!city||!dateVal||!ttName||!ttPrice||!ttSeats){
+      showToast('❌ Заполните все обязательные поля','err'); return;
+    }
+    const dp = dateVal.split('-');
+    const dateFormatted = dp.length===3 ? `${dp[2]}.${dp[1]}.${dp[0]}` : dateVal;
+    const urlField = document.getElementById('evPosterUrl');
+    let posterUrl = urlField?.value?.trim() || '';
+    if(urlField?.dataset?.base64) posterUrl = urlField.dataset.base64;
+    const payload = {
       title, venue, city,
       description: g('evDesc'),
-      category:    document.getElementById('evCat')?.value||'other',
-      age_rating:  document.getElementById('evAge')?.value||'0+',
+      category:    document.getElementById('evCat')?.value || 'other',
+      age_rating:  document.getElementById('evAge')?.value || '0+',
       date:        dateFormatted,
-      time:        g('evTime')||'19:00',
-      emoji:       g('evEmoji')||'🎡',
+      time:        g('evTime') || '19:00',
+      emoji:       g('evEmoji') || '🎡',
       poster_url:  posterUrl,
-      ticket_types:[{name:ttName,price:ttPrice,total:ttSeats,available:ttSeats}],
+      ticket_types:[{name:ttName, price:ttPrice, total:ttSeats, available:ttSeats}],
     };
-
-    const btn=document.getElementById('submitEvBtn');
-    btn.disabled=true; btn.innerHTML='<div class="ld"></div>';
-    try{
-      if(evId) await apiFetch(`/api/admin/event/${evId}`,{method:'PUT',body:JSON.stringify(payload)});
-      else await apiFetch('/api/admin/event',{method:'POST',body:JSON.stringify(payload)});
-    }catch{
-      const newEv={...payload,id:Date.now(),ticket_types:[{id:Date.now(),name:ttName,price:ttPrice,total:ttSeats,available:ttSeats}]};
+    const btn = document.getElementById('submitEvBtn');
+    btn.disabled = true; btn.innerHTML = '<div class="ld"></div>';
+    try {
+      if(evId) await apiFetch(`/api/admin/event/${evId}`, {method:'PUT', body:JSON.stringify(payload)});
+      else     await apiFetch('/api/admin/event', {method:'POST', body:JSON.stringify(payload)});
+    } catch {
+      const newEv = {...payload, id:Date.now(), ticket_types:[{id:Date.now(), name:ttName, price:ttPrice, total:ttSeats, available:ttSeats}]};
       state.events.unshift(newEv);
     }
     haptic('success');
-    showToast(evId?'💾 Событие обновлено!':'✅ Событие создано!','ok');
+    showToast(evId ? '💾 Событие обновлено!' : '✅ Событие создано!', 'ok');
     renderAddEvent();
-    setTimeout(()=>loadEvents(),500);
+    setTimeout(() => loadEvents(), 500);
   }
 
-  // ── СКАНЕР (БАГ 3 ФИХ: используем полный QR код из БД) ──
+  // ── СКАНЕР ────────────────────────────────────────
   function renderScanner(){
-    document.getElementById('selContent').innerHTML=`
+    document.getElementById('selContent').innerHTML = `
       <div class="sec">📷 Проверка билета</div>
       <div class="scan-box" id="scanBox">
         <div style="font-size:50px;margin-bottom:10px">📷</div>
         <div style="font-weight:700;margin-bottom:5px">Введите код билета</div>
-        <div style="font-size:11px;color:var(--muted)">Полный UUID из QR-кода (формат: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)</div>
+        <div style="font-size:11px;color:var(--muted)">UUID из QR-кода билета</div>
       </div>
       <div id="scanResult"></div>
       <div class="fld">
         <label class="fl">UUID код билета</label>
-        <input class="fi" id="qrInput" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input class="fi" id="qrInput" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </div>
       <button class="btn bp" id="scanBtn" onclick="APP.validateTicket()">🔍 Проверить</button>
       <div style="height:20px"></div>`;
   }
 
   async function validateTicket(){
-    const code=document.getElementById('qrInput')?.value?.trim();
+    const code = document.getElementById('qrInput')?.value?.trim();
     if(!code){ showToast('❌ Введите код билета','err'); return; }
-    const btn=document.getElementById('scanBtn');
-    btn.disabled=true; btn.innerHTML='<div class="ld"></div>';
-    let result=null;
-    try{ result=await apiFetch('/api/admin/validate',{method:'POST',body:JSON.stringify({qr_code:code})}); }
-    catch(e){ console.error('Validate error:',e); }
-    btn.disabled=false; btn.textContent='🔍 Проверить';
-    const el=document.getElementById('scanResult');
-    if(!result){ el.innerHTML='<div class="scan-res bad"><div style="font-weight:700">⚠️ ОШИБКА СОЕДИНЕНИЯ</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Проверьте подключение к серверу</div></div>'; showToast('⚠️ Ошибка соединения','err'); }
-    else if(result.status==='valid'){ haptic('success'); el.innerHTML=`<div class="scan-res ok"><div style="font-weight:700;margin-bottom:7px">✅ БИЛЕТ ДЕЙСТВИТЕЛЕН</div><div style="font-size:12px;color:var(--muted)">🎭 ${result.event}</div><div style="font-size:12px;color:var(--muted)">🎫 ${result.ticket_type}</div><div style="font-size:12px;color:var(--muted)">📅 ${result.date} · 📍 ${result.venue}</div></div>`; showToast('✅ Билет принят!','ok'); }
-    else if(result.status==='used'){ haptic('error'); el.innerHTML=`<div class="scan-res used"><div style="font-weight:700">⛔ УЖЕ ИСПОЛЬЗОВАН</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Использован: ${result.used_at||'—'}</div></div>`; showToast('⛔ Билет уже использован','err'); }
-    else{ haptic('error'); el.innerHTML='<div class="scan-res bad"><div style="font-weight:700">❌ БИЛЕТ НЕ НАЙДЕН</div></div>'; showToast('❌ Недействительный билет','err'); }
-    document.getElementById('qrInput').value='';
+    const btn = document.getElementById('scanBtn');
+    btn.disabled = true; btn.innerHTML = '<div class="ld"></div>';
+    let result = null;
+    try { result = await apiFetch('/api/admin/validate', {method:'POST', body:JSON.stringify({qr_code:code})}); }
+    catch(e){ console.error('Validate error:', e); }
+    btn.disabled = false; btn.textContent = '🔍 Проверить';
+    const el = document.getElementById('scanResult');
+    if(!result){
+      el.innerHTML = '<div class="scan-res bad"><div style="font-weight:700">⚠️ ОШИБКА СОЕДИНЕНИЯ</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Проверьте подключение к серверу</div></div>';
+      showToast('⚠️ Ошибка соединения','err');
+    } else if(result.status==='valid'){
+      haptic('success');
+      el.innerHTML = `<div class="scan-res ok"><div style="font-weight:700;margin-bottom:7px">✅ БИЛЕТ ДЕЙСТВИТЕЛЕН</div><div style="font-size:12px;color:var(--muted)">🎭 ${result.event}</div><div style="font-size:12px;color:var(--muted)">🎫 ${result.ticket_type}</div><div style="font-size:12px;color:var(--muted)">📅 ${result.date} · 📍 ${result.venue}</div></div>`;
+      showToast('✅ Билет принят!','ok');
+    } else if(result.status==='used'){
+      haptic('error');
+      el.innerHTML = `<div class="scan-res used"><div style="font-weight:700">⛔ УЖЕ ИСПОЛЬЗОВАН</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Использован: ${result.used_at||'—'}</div></div>`;
+      showToast('⛔ Билет уже использован','err');
+    } else {
+      haptic('error');
+      el.innerHTML = '<div class="scan-res bad"><div style="font-weight:700">❌ БИЛЕТ НЕ НАЙДЕН</div></div>';
+      showToast('❌ Недействительный билет','err');
+    }
+    document.getElementById('qrInput').value = '';
   }
 
-  // ── ПРОМОКОДЫ (БАГ 4 ФИХ: берём из API = единая БД с ботом) ──
+  // ── ПРОМОКОДЫ ─────────────────────────────────────
   async function renderPromos(){
-    const c=document.getElementById('selContent');
-    c.innerHTML='<div class="empty"><div class="ld"></div></div>';
-    let promos=[];
-    try{ promos=await apiFetch('/api/admin/promos'); }catch{}
-    c.innerHTML=`
+    const c = document.getElementById('selContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    let promos = [];
+    try { promos = await apiFetch('/api/admin/promos'); } catch {}
+    c.innerHTML = `
       <div class="sec">🏷 Промокоды (${promos.length})</div>
-      ${promos.length?promos.map((p,i)=>`
+      ${promos.length ? promos.map((p,i) => `
         <div class="promo-card" style="animation-delay:${i*.07}s">
           <div style="flex:1">
-            <div class="pc">${p.code} ${p.active?'<span style="font-size:9px;color:var(--green)">●</span>':'<span style="font-size:9px;color:var(--muted)">●</span>'}</div>
-            <div class="pi">${p.type==='percent'?`−${p.value}%`:`−${fmt(p.value)}`} · Использован ${p.used}/${p.max} раз</div>
-            <div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:${Math.min(100,Math.round(p.used/p.max*100))}%"></div></div>
+            <div class="pc">${p.code} ${p.active
+              ? '<span style="font-size:9px;color:var(--green)">●</span>'
+              : '<span style="font-size:9px;color:var(--muted)">●</span>'}</div>
+            <div class="pi">${p.type==='percent' ? `−${p.value}%` : `−${fmt(p.value)}`} · Использован ${p.used}/${p.max} раз</div>
+            <div class="prog-bar" style="width:80px">
+              <div class="prog-fill" style="width:${Math.min(100,Math.round(p.used/p.max*100))}%"></div>
+            </div>
           </div>
           <button class="btn bd bsm" onclick="APP.deletePromo(${p.id})">✕</button>
-        </div>`).join(''):'<div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center">Нет промокодов</div>'}
+        </div>`).join('')
+      : '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center">Нет промокодов</div>'}
       <div class="divider"></div>
       <div class="sec">➕ Создать промокод</div>
-      <div class="fld"><label class="fl">Код</label><input class="fi" id="pcCode" placeholder="SUMMER25" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="fld"><label class="fl">Код</label>
+        <input class="fi" id="pcCode" placeholder="SUMMER25" oninput="this.value=this.value.toUpperCase()">
+      </div>
       <div class="frow">
         <div class="fld"><label class="fl">Тип</label>
           <select class="fi" id="pcType"><option value="percent">% Процент</option><option value="fixed">сум Сумма</option></select>
@@ -896,43 +1177,58 @@ const APP = (() => {
   }
 
   async function deletePromo(id){
-    try{ await apiFetch(`/api/admin/promo/${id}`,{method:'DELETE'}); }catch{}
+    try { await apiFetch(`/api/admin/promo/${id}`, {method:'DELETE'}); } catch {}
     haptic('success'); showToast('🗑 Промокод удалён','ok'); renderPromos();
   }
 
   async function createPromo(){
-    const code=document.getElementById('pcCode')?.value?.trim().toUpperCase();
-    const type=document.getElementById('pcType')?.value;
-    const val=parseFloat(document.getElementById('pcVal')?.value);
-    const max=parseInt(document.getElementById('pcMax')?.value);
+    const code = document.getElementById('pcCode')?.value?.trim().toUpperCase();
+    const type = document.getElementById('pcType')?.value;
+    const val  = parseFloat(document.getElementById('pcVal')?.value);
+    const max  = parseInt(document.getElementById('pcMax')?.value);
     if(!code||!val||!max){ showToast('❌ Заполните все поля','err'); return; }
-    try{ await apiFetch('/api/admin/promo',{method:'POST',body:JSON.stringify({code,type,value:val,max_uses:max})}); }
-    catch{ showToast('❌ Ошибка создания','err'); return; }
+    try {
+      await apiFetch('/api/admin/promo', {method:'POST', body:JSON.stringify({code,type,value:val,max_uses:max})});
+    } catch { showToast('❌ Ошибка создания','err'); return; }
     haptic('success'); showToast(`✅ Промокод ${code} создан!`,'ok'); renderPromos();
   }
 
-  // ── RIPPLE ──
-  document.addEventListener('click',e=>{
-    const t=e.target.closest('.btn,.rc,.ev-card,.tt-card,.hbtn');
+  // ── RIPPLE ────────────────────────────────────────
+  document.addEventListener('click', e => {
+    const t = e.target.closest('.btn,.rc,.ev-card,.tt-card,.tab-item');
     if(!t) return;
-    const el=document.createElement('span'); el.className='rpl-el';
-    const rc=t.getBoundingClientRect(), sz=Math.max(rc.width,rc.height);
-    el.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rc.left-sz/2}px;top:${e.clientY-rc.top-sz/2}px`;
-    t.appendChild(el); setTimeout(()=>el.remove(),600);
+    const el = document.createElement('span');
+    el.className = 'rpl-el';
+    const rc = t.getBoundingClientRect(), sz = Math.max(rc.width, rc.height);
+    el.style.cssText = `width:${sz}px;height:${sz}px;left:${e.clientX-rc.left-sz/2}px;top:${e.clientY-rc.top-sz/2}px`;
+    t.appendChild(el);
+    setTimeout(() => el.remove(), 600);
   });
 
-  // ── INIT ──
+  // ── INIT ──────────────────────────────────────────
   function init(){
-    // БАГ 1 ФИХ: инициализируем кнопки назад через addEventListener
-    _initBackButtons();
-    const saved=localStorage.getItem('tb_role');
-    if(saved){ state.role=saved; _applyRole(saved); }
-    else goTo('pgOnboard');
+    _initEvents();
+    const saved = localStorage.getItem('tb_role');
+    if(saved){
+      state.role = saved;
+      _showTabbar();
+      if(saved === 'buyer'){
+        _setActiveTab('events');
+        loadEvents();
+        goTo('pgBuyer');
+      } else {
+        _setActiveTab('cabinet');
+        goTo('pgSeller');
+        sellerTab('stats');
+      }
+    } else {
+      goTo('pgOnboard');
+    }
     updateCartUI();
   }
 
   return {
-    chooseRole, switchRole, goTo,
+    chooseRole, switchRole, goTo, tabNav,
     filterEvents, setFilter,
     openEvent, selectTicket, changeQty, addToCart,
     openCart, closeCart, removeFromCart, pay, closeSuccess,
@@ -945,23 +1241,40 @@ const APP = (() => {
   };
 })();
 
-// Демо данные для оффлайн режима
-const DEMO_EVENTS=[
-  {id:1,title:"Imagine Dragons Live",category:"concert",emoji:"🎵",venue:"Миллий боғ амфитеатри",city:"Тошкент",date:"15.06.2025",time:"19:00",age_rating:"12+",
+// ── ДЕМО ДАННЫЕ ───────────────────────────────────
+const DEMO_EVENTS = [
+  {id:1,title:"Imagine Dragons Live",category:"concert",emoji:"🎵",
+   venue:"Миллий боғ амфитеатри",city:"Тошкент",date:"15.06.2025",time:"19:00",age_rating:"12+",
    description:"Грандиозное шоу мирового уровня. Лазеры, конфетти и хиты из всех альбомов. Живой звук, 3 часа незабываемой музыки!",
-   ticket_types:[{id:1,name:"Стандарт",price:350000,available:120,total:200},{id:2,name:"VIP",price:850000,available:8,total:30},{id:3,name:"Студент",price:220000,available:40,total:50}]},
-  {id:2,title:"Мусиқали Кеча",category:"theater",emoji:"🎭",venue:"Навоий театри",city:"Тошкент",date:"22.06.2025",time:"18:30",age_rating:"0+",
+   ticket_types:[
+     {id:1,name:"Стандарт",price:350000,available:120,total:200},
+     {id:2,name:"VIP",price:850000,available:8,total:30},
+     {id:3,name:"Студент",price:220000,available:40,total:50}]},
+  {id:2,title:"Мусиқали Кеча",category:"theater",emoji:"🎭",
+   venue:"Навоий театри",city:"Тошкент",date:"22.06.2025",time:"18:30",age_rating:"0+",
    description:"Классический спектакль в исполнении ведущей труппы Узбекистана. Вечер высокого искусства и прекрасной музыки.",
-   ticket_types:[{id:4,name:"Партер",price:500000,available:80,total:150},{id:5,name:"Балкон",price:250000,available:200,total:300},{id:6,name:"Ложа VIP",price:1200000,available:4,total:8}]},
-  {id:3,title:"UFC Fight Night Tashkent",category:"sport",emoji:"🥊",venue:"Humo Arena",city:"Тошкент",date:"30.06.2025",time:"20:00",age_rating:"16+",
+   ticket_types:[
+     {id:4,name:"Партер",price:500000,available:80,total:150},
+     {id:5,name:"Балкон",price:250000,available:200,total:300},
+     {id:6,name:"Ложа VIP",price:1200000,available:4,total:8}]},
+  {id:3,title:"UFC Fight Night Tashkent",category:"sport",emoji:"🥊",
+   venue:"Humo Arena",city:"Тошкент",date:"30.06.2025",time:"20:00",age_rating:"16+",
    description:"Вечер смешанных единоборств. Топовые бойцы в прямом эфире! Незабываемое зрелище для всей семьи.",
-   ticket_types:[{id:7,name:"Трибуна",price:200000,available:500,total:1000},{id:8,name:"Ринг-сайд",price:1500000,available:3,total:20}]},
-  {id:4,title:"Tashkent Music Fest 2025",category:"festival",emoji:"🎪",venue:"Ботаника боғи",city:"Тошкент",date:"12.07.2025",time:"12:00",age_rating:"0+",
+   ticket_types:[
+     {id:7,name:"Трибуна",price:200000,available:500,total:1000},
+     {id:8,name:"Ринг-сайд",price:1500000,available:3,total:20}]},
+  {id:4,title:"Tashkent Music Fest 2025",category:"festival",emoji:"🎪",
+   venue:"Ботаника боғи",city:"Тошкент",date:"12.07.2025",time:"12:00",age_rating:"0+",
    description:"Главный летний фестиваль с 30+ артистами на 5 сценах. Еда, развлечения, живая музыка целый день!",
-   ticket_types:[{id:9,name:"Однодневный",price:450000,available:1000,total:5000},{id:10,name:"VIP-зона",price:1200000,available:50,total:100}]},
-  {id:5,title:"Ўзбек Рассомлари",category:"exhibition",emoji:"🖼",venue:"Санъат музейи",city:"Тошкент",date:"01.06.2025",time:"10:00",age_rating:"0+",
+   ticket_types:[
+     {id:9,name:"Однодневный",price:450000,available:1000,total:5000},
+     {id:10,name:"VIP-зона",price:1200000,available:50,total:100}]},
+  {id:5,title:"Ўзбек Рассомлари",category:"exhibition",emoji:"🖼",
+   venue:"Санъат музейи",city:"Тошкент",date:"01.06.2025",time:"10:00",age_rating:"0+",
    description:"Выставка современного узбекского искусства. Живопись, скульптура, инсталляции от ведущих мастеров страны.",
-   ticket_types:[{id:11,name:"Взрослый",price:80000,available:300,total:500},{id:12,name:"Льготный",price:40000,available:100,total:200}]},
+   ticket_types:[
+     {id:11,name:"Взрослый",price:80000,available:300,total:500},
+     {id:12,name:"Льготный",price:40000,available:100,total:200}]},
 ];
 
 APP.init();
