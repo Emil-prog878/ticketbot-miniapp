@@ -443,7 +443,7 @@ textarea.fi{resize:vertical;min-height:70px}
     </button>
     <span class="d-he" id="dEmoji"></span>
   </div>
-  <div class="scr" style="padding-top:0">
+  <div class="scr" style="padding-top:0;padding-bottom:calc(var(--tab-h) + 80px)">
     <div style="padding:12px">
       <div class="d-cat" id="dCat"></div>
       <div class="d-title" id="dTitle"></div>
@@ -461,7 +461,18 @@ textarea.fi{resize:vertical;min-height:70px}
       </div>
     </div>
   </div>
-  <div style="padding:10px 14px max(env(safe-area-inset-bottom),10px);background:rgba(8,8,18,.95);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);flex-shrink:0">
+  <!-- Кнопка добавления: z-index выше таббара, фиксирована над ним -->
+  <div style="
+    position:fixed;
+    bottom:calc(var(--tab-h) + env(safe-area-inset-bottom));
+    left:0;right:0;
+    padding:10px 14px 12px;
+    background:rgba(8,8,18,.97);
+    backdrop-filter:blur(20px);
+    border-top:1px solid var(--bdr);
+    z-index:110;
+    display:none;
+  " id="addBtnBar">
     <button class="btn bp" id="addBtn" onclick="APP.addToCart()" disabled>Выберите тип билета</button>
   </div>
 </div>
@@ -691,6 +702,7 @@ const APP = (() => {
     // Кнопка назад в деталях события
     document.getElementById('detailBackBtn')?.addEventListener('click', () => {
       haptic();
+      document.getElementById('addBtnBar').style.display = 'none';
       _setActiveTab('events');
       goTo('pgBuyer');
     });
@@ -787,6 +799,9 @@ const APP = (() => {
     if(!ev) return;
     state.curEvent = ev; state.curTicketType = null; state.qty = 1;
 
+    // Показываем панель кнопки
+    document.getElementById('addBtnBar').style.display = 'block';
+
     const hero = document.getElementById('dHero');
     hero.querySelectorAll('img').forEach(i => i.remove());
     if(ev.poster_url){
@@ -878,6 +893,7 @@ const APP = (() => {
     saveCart();
     haptic('success');
     showToast('✅ Добавлено в корзину!', 'ok');
+    document.getElementById('addBtnBar').style.display = 'none';
     _setActiveTab('events');
     goTo('pgBuyer');
   }
