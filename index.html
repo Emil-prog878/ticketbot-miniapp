@@ -86,13 +86,17 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 }
 .tab-badge{
   position:absolute;top:-2px;right:2px;
-  background:linear-gradient(135deg,var(--accent),var(--a2));
-  color:#fff;font-size:9px;font-weight:700;
-  border-radius:99px;padding:2px 5px;min-width:17px;text-align:center;
+  background:var(--red);
+  color:#fff;font-size:9px;font-weight:800;
+  border-radius:99px;padding:2px 6px;min-width:18px;text-align:center;
   display:none;border:2px solid rgba(10,10,22,.96);
-  animation:pop .3s ease;
+  box-shadow:0 0 10px rgba(239,68,68,.6);
 }
-.tab-badge.on{display:block}
+.tab-badge.on{display:block;animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+/* Мигание иконки корзины когда есть товары */
+@keyframes cartPulse{0%,100%{filter:drop-shadow(0 0 0px rgba(239,68,68,0))}50%{filter:drop-shadow(0 0 8px rgba(239,68,68,.8))}}
+.tab-item.has-items .tab-icon{animation:cartPulse 2s ease-in-out infinite}
+.tab-item.has-items .tab-icon-wrap{background:rgba(239,68,68,.12)}
 /* Индикатор активной вкладки */
 .tab-dot{
   position:absolute;bottom:2px;left:50%;transform:translateX(-50%) scale(0);
@@ -328,7 +332,29 @@ textarea.fi{resize:vertical;min-height:70px}
 .ev-mgmt-sub{font-size:11px;color:var(--muted);margin-bottom:9px}
 .ev-mgmt-foot{display:flex;gap:7px}
 
-/* ── УТИЛИТЫ ── */
+/* ── ТАЙМЕР КОРЗИНЫ ── */
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes timerExpire{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.cart-timer{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
+  border-radius:13px;padding:10px 13px;margin-bottom:11px;
+}
+.cart-timer.warn{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.35)}
+.cart-timer.ok{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25)}
+.timer-ico{font-size:20px;flex-shrink:0}
+.timer-body{flex:1}
+.timer-label{font-size:10px;color:var(--muted);margin-bottom:2px}
+.timer-val{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:800;letter-spacing:.5px;transition:color .3s}
+.timer-bar-wrap{height:3px;background:var(--bg4);border-radius:99px;overflow:hidden;margin-top:5px}
+.timer-bar{height:100%;border-radius:99px;transition:width 1s linear, background .5s}
+
+/* ── КНОПКИ КОРЗИНЫ ── */
+.cart-actions{display:flex;gap:9px}
+.btn-cancel{background:var(--bg3);color:var(--muted);border:1px solid var(--bdr);border-radius:14px;
+  padding:13px 18px;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;
+  cursor:pointer;flex:1;transition:all .15s;position:relative;overflow:hidden}
+.btn-cancel:active{transform:scale(.96);background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.3)}
 .skel{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
   background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
 .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-120px);
@@ -451,7 +477,10 @@ textarea.fi{resize:vertical;min-height:70px}
     </div>
     <div class="sh-scr" id="cartContent"></div>
     <div class="sh-foot">
-      <button class="btn bp" id="payBtn" onclick="APP.pay()">Оформить заказ</button>
+      <div class="cart-actions">
+        <button class="btn-cancel" id="cancelBtn" onclick="APP.cancelCart()">✕ Отменить</button>
+        <button class="btn bp" id="payBtn" onclick="APP.pay()" style="flex:2">💳 Оплатить</button>
+      </div>
     </div>
   </div>
 </div>
@@ -487,7 +516,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: " https://changed-climate-well-collecting.trycloudflare.com",
+  API: "https://changed-climate-well-collecting.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -500,9 +529,12 @@ const TG_INIT_DATA = TG?.initData || '';
 const CAT = {all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"};
 
 const APP = (() => {
+  const CART_TTL = 15 * 60; // 15 минут в секундах
+
   let state = {
     role:          '',
     cart:          JSON.parse(localStorage.getItem('tb_cart') || '[]'),
+    cartExpireAt:  parseInt(localStorage.getItem('tb_cart_expire') || '0'), // timestamp ms
     events:        [],
     curEvent:      null,
     curTicketType: null,
@@ -510,7 +542,14 @@ const APP = (() => {
     filter:        'all',
     activeTab:     'events',
     currentSelTab: 'stats',
+    _timerInterval: null,
   };
+
+  // Если корзина уже истекла при загрузке — очищаем
+  if(state.cartExpireAt && Date.now() > state.cartExpireAt){
+    state.cart = []; state.cartExpireAt = 0;
+    localStorage.removeItem('tb_cart'); localStorage.removeItem('tb_cart_expire');
+  }
 
   // ── УТИЛИТЫ ──────────────────────────────────────
   function fmt(n){ return Number(n).toLocaleString('ru') + ' ' + CFG.CURRENCY; }
@@ -525,6 +564,51 @@ const APP = (() => {
     el.className = 'toast ' + type + ' show';
     clearTimeout(el._t);
     el._t = setTimeout(() => el.classList.remove('show'), 2700);
+  }
+
+  // ── ТАЙМЕР ────────────────────────────────────────
+  function _startTimer(){
+    _stopTimer();
+    if(!state.cartExpireAt) return;
+    state._timerInterval = setInterval(() => {
+      const left = Math.max(0, Math.floor((state.cartExpireAt - Date.now()) / 1000));
+      _renderTimerBlock(left);
+      if(left <= 0){ _expireCart(); }
+    }, 1000);
+    _renderTimerBlock(Math.max(0, Math.floor((state.cartExpireAt - Date.now()) / 1000)));
+  }
+
+  function _stopTimer(){
+    if(state._timerInterval){ clearInterval(state._timerInterval); state._timerInterval = null; }
+  }
+
+  function _renderTimerBlock(secsLeft){
+    const el = document.getElementById('cartTimerBlock'); if(!el) return;
+    const m = Math.floor(secsLeft / 60), s = secsLeft % 60;
+    const pct = Math.min(100, (secsLeft / CART_TTL) * 100);
+    const isWarn = secsLeft < 120, isOk = secsLeft >= 300;
+    const color = isOk ? 'var(--green)' : isWarn ? 'var(--red)' : 'var(--gold)';
+    const timerClass = isOk ? 'ok' : isWarn ? '' : 'warn';
+    el.className = 'cart-timer ' + timerClass;
+    el.innerHTML = `
+      <span class="timer-ico">${isWarn && secsLeft < 60 ? '🔴' : '⏱'}</span>
+      <div class="timer-body">
+        <div class="timer-label">Места забронированы на</div>
+        <div class="timer-val" style="color:${color}">${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</div>
+        <div class="timer-bar-wrap">
+          <div class="timer-bar" style="width:${pct}%;background:${color}"></div>
+        </div>
+      </div>`;
+  }
+
+  function _expireCart(){
+    _stopTimer();
+    state.cart = []; state.cartExpireAt = 0;
+    localStorage.removeItem('tb_cart'); localStorage.removeItem('tb_cart_expire');
+    updateCartUI();
+    closeCart();
+    haptic('error');
+    showToast('⏰ Время вышло — бронь отменена', 'err');
   }
 
   // ── НАВИГАЦИЯ ─────────────────────────────────────
@@ -789,7 +873,10 @@ const APP = (() => {
       event_time: ev.time, event_age: ev.age_rating, venue: ev.venue,
       tt_id: tt.id, tt_name: tt.name, price: tt.price, qty: state.qty
     });
-    saveCart(); haptic('success');
+    // Ставим/обновляем таймер: всегда 15 мин от момента последнего добавления
+    state.cartExpireAt = Date.now() + CART_TTL * 1000;
+    saveCart();
+    haptic('success');
     showToast('✅ Добавлено в корзину!', 'ok');
     _setActiveTab('events');
     goTo('pgBuyer');
@@ -797,39 +884,67 @@ const APP = (() => {
 
   function saveCart(){
     localStorage.setItem('tb_cart', JSON.stringify(state.cart));
+    if(state.cart.length && state.cartExpireAt)
+      localStorage.setItem('tb_cart_expire', String(state.cartExpireAt));
+    else
+      localStorage.removeItem('tb_cart_expire');
     updateCartUI();
   }
 
   function updateCartUI(){
     const tq = state.cart.reduce((s,i) => s + i.qty, 0);
-    // Бейдж на вкладке корзины
+    const cartTab = document.getElementById('tab-cart');
     const b = document.getElementById('tabCartBadge');
-    if(b){ b.textContent = tq; b.classList.toggle('on', tq > 0); }
+    if(b){ b.textContent = tq || ''; b.classList.toggle('on', tq > 0); }
+    if(cartTab){ cartTab.classList.toggle('has-items', tq > 0); }
+    // Если корзина опустела — останавливаем таймер
+    if(!tq){ _stopTimer(); state.cartExpireAt = 0; localStorage.removeItem('tb_cart_expire'); }
+  }
+
+  function cancelCart(){
+    haptic();
+    state.cart = []; state.cartExpireAt = 0;
+    _stopTimer();
+    localStorage.removeItem('tb_cart'); localStorage.removeItem('tb_cart_expire');
+    updateCartUI(); closeCart();
+    showToast('🗑 Корзина очищена', '');
   }
 
   function openCart(){
     renderCartContent();
     document.getElementById('shCart').classList.add('on');
+    // Запускаем тикающий таймер пока шторка открыта
+    if(state.cart.length && state.cartExpireAt) _startTimer();
   }
   function closeCart(){
     document.getElementById('shCart').classList.remove('on');
+    _stopTimer();
   }
 
   function removeFromCart(ttId){
     state.cart = state.cart.filter(i => i.tt_id !== ttId);
+    if(!state.cart.length){ state.cartExpireAt = 0; localStorage.removeItem('tb_cart_expire'); }
     saveCart(); renderCartContent(); haptic();
   }
 
   function renderCartContent(){
     const c = document.getElementById('cartContent');
     const pb = document.getElementById('payBtn');
+    const cb = document.getElementById('cancelBtn');
     if(!state.cart.length){
+      if(pb){ pb.disabled = true; pb.textContent = 'Корзина пуста'; }
+      if(cb) cb.style.display = 'none';
       c.innerHTML = '<div class="empty"><div class="empty-ico">🛒</div><div>Корзина пуста</div></div>';
-      pb.disabled = true; pb.textContent = 'Корзина пуста'; return;
+      return;
     }
+    if(pb){ pb.disabled = false; pb.textContent = '💳 Оплатить'; }
+    if(cb) cb.style.display = '';
     const tot = state.cart.reduce((s,i) => s + i.price * i.qty, 0);
-    pb.disabled = false; pb.textContent = `💳 Оплатить — ${fmt(tot)}`;
-    c.innerHTML = state.cart.map(it => `
+    // Блок таймера вверху
+    const timerHtml = state.cartExpireAt
+      ? `<div id="cartTimerBlock" class="cart-timer ok"></div>`
+      : '';
+    c.innerHTML = timerHtml + state.cart.map(it => `
       <div class="ci">
         <div class="ci-title">${it.event_title}</div>
         <div class="ci-sub">🎫 ${it.tt_name} × ${it.qty} шт · 📅 ${it.event_date} ${it.event_time}</div>
@@ -842,6 +957,11 @@ const APP = (() => {
         <span class="total-lbl">Итого</span>
         <span class="total-val">${fmt(tot)}</span>
       </div>`;
+    // Сразу рендерим первое значение таймера
+    if(state.cartExpireAt){
+      const left = Math.max(0, Math.floor((state.cartExpireAt - Date.now()) / 1000));
+      _renderTimerBlock(left);
+    }
   }
 
   // ── ОПЛАТА ────────────────────────────────────────
@@ -1225,13 +1345,17 @@ const APP = (() => {
       goTo('pgOnboard');
     }
     updateCartUI();
+    // Если была корзина с таймером — покажем бейдж сразу
+    if(state.cart.length && state.cartExpireAt && Date.now() < state.cartExpireAt){
+      updateCartUI();
+    }
   }
 
   return {
     chooseRole, switchRole, goTo, tabNav,
     filterEvents, setFilter,
     openEvent, selectTicket, changeQty, addToCart,
-    openCart, closeCart, removeFromCart, pay, closeSuccess,
+    openCart, closeCart, removeFromCart, cancelCart, pay, closeSuccess,
     sellerTab, renderStats, renderMyEvents, renderAddEvent, submitEvent,
     editEvent, deleteEvent,
     handleImageUpload, handlePosterUrl,
