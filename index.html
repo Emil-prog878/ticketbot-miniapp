@@ -877,65 +877,83 @@ const APP = (() => {
     }
   }
 
-  // ── КОРЗИНА: СОХРАНЕНИЕ (сервер + localStorage как fallback) ─────────────
+  // ══════════════════════════════════════════════════════════════════
+  //  КОРЗИНА — полная логика с серверной синхронизацией
+  //
+  //  Сценарий A (одно устройство):
+  //    addToCart → saveCart(localStorage) → _syncCartToServer (async)
+  //    openCart  → рендер из state.cart (уже есть в памяти)
+  //
+  //  Сценарий B (смена устройства):
+  //    init → локально пусто → _loadCartFromServer → state.cart = данные
+  //
+  //  Правило: сервер — источник правды только при СМЕНЕ устройства.
+  //  На текущем устройстве state.cart всегда актуален сразу.
+  // ══════════════════════════════════════════════════════════════════
+
+  // ── Сохранить корзину на сервер (fire-and-forget) ──
   async function _syncCartToServer(){
-    if(!TG_USER_ID) return;                      // нет user_id — только localStorage
+    if(!TG_USER_ID) return;
     try {
       const res = await apiFetch('/api/cart', {
         method: 'POST',
-        body: JSON.stringify({ items: state.cart })
+        body:   JSON.stringify({ items: state.cart })
       });
-      // Сервер вернул актуальный expire_at — обновляем
-      if(res.expire_at){
+      // Сервер вернул точный expire_at — синхронизируем
+      if(res && res.expire_at && res.expire_at > Date.now()){
         state.cartExpireAt = res.expire_at;
         localStorage.setItem('tb_cart_expire', String(res.expire_at));
       }
-    } catch(e) {
-      console.warn('Cart sync failed, using localStorage only:', e);
+    } catch(e){
+      console.warn('[cart] sync failed, localStorage only:', e.message);
     }
   }
 
+  // ── Загрузить корзину с сервера (только при пустом localStorage) ──
   async function _loadCartFromServer(){
     if(!TG_USER_ID) return false;
     try {
       const res = await apiFetch('/api/cart');
-      if(res.items && res.items.length > 0){
-        state.cart       = res.items;
-        state.cartExpireAt = res.expire_at || 0;
-        // Синхронизируем в localStorage тоже
-        localStorage.setItem('tb_cart',        JSON.stringify(state.cart));
-        localStorage.setItem('tb_cart_expire', String(state.cartExpireAt));
-        return true;
-      } else {
-        // Сервер говорит корзина пуста — сбрасываем и локально
-        state.cart = []; state.cartExpireAt = 0;
-        localStorage.removeItem('tb_cart'); localStorage.removeItem('tb_cart_expire');
-        return false;
-      }
-    } catch(e) {
-      console.warn('Could not load cart from server, using localStorage:', e);
+      if(!res || !res.items || !res.items.length) return false;
+      // Проверяем что expire_at ещё не истёк
+      const exp = res.expire_at || 0;
+      if(exp && Date.now() > exp) return false;   // на сервере тоже истекло
+      state.cart         = res.items;
+      state.cartExpireAt = exp;
+      localStorage.setItem('tb_cart',        JSON.stringify(state.cart));
+      localStorage.setItem('tb_cart_expire', String(exp));
+      return true;
+    } catch(e){
+      console.warn('[cart] load failed:', e.message);
       return false;
     }
   }
 
+  // ── Удалить корзину на сервере ──
   async function _clearCartOnServer(){
     if(!TG_USER_ID) return;
-    try { await apiFetch('/api/cart', { method: 'DELETE' }); } catch {}
+    try { await apiFetch('/api/cart', { method: 'DELETE' }); } catch{}
   }
 
+  // ── Добавить билет в корзину ──
   function addToCart(){
     if(!state.curTicketType || !state.curEvent) return;
     const ev = state.curEvent, tt = state.curTicketType;
     const ex = state.cart.find(c => c.tt_id === tt.id);
     if(ex) ex.qty = Math.min(ex.qty + state.qty, CFG.MAX_QTY);
     else state.cart.push({
-      event_id: ev.id, event_title: ev.title, event_date: ev.date,
-      event_time: ev.time, event_age: ev.age_rating, venue: ev.venue,
-      tt_id: tt.id, tt_name: tt.name, price: tt.price, qty: state.qty
+      event_id:    ev.id,    event_title: ev.title,
+      event_date:  ev.date,  event_time:  ev.time,
+      event_age:   ev.age_rating,         venue: ev.venue,
+      tt_id:       tt.id,    tt_name:     tt.name,
+      price:       tt.price, qty:         state.qty
     });
-    state.cartExpireAt = Date.now() + CART_TTL * 1000;
-    saveCart();
-    _syncCartToServer();
+    // Ставим expire сразу локально; сервер потом уточнит
+    if(!state.cartExpireAt || Date.now() + CART_TTL * 1000 > state.cartExpireAt){
+      state.cartExpireAt = Date.now() + CART_TTL * 1000;
+    }
+    _saveCartLocal();
+    _syncCartToServer();    // async, не ждём
     haptic('success');
     showToast('✅ Добавлено в корзину!', 'ok');
     document.getElementById('addBtnBar').style.display = 'none';
@@ -943,7 +961,8 @@ const APP = (() => {
     goTo('pgBuyer');
   }
 
-  function saveCart(){
+  // ── Сохранить в localStorage и обновить UI ──
+  function _saveCartLocal(){
     localStorage.setItem('tb_cart', JSON.stringify(state.cart));
     if(state.cart.length && state.cartExpireAt)
       localStorage.setItem('tb_cart_expire', String(state.cartExpireAt));
@@ -952,86 +971,61 @@ const APP = (() => {
     updateCartUI();
   }
 
+  // Алиас для совместимости
+  function saveCart(){ _saveCartLocal(); }
+
   function updateCartUI(){
     const tq = state.cart.reduce((s,i) => s + i.qty, 0);
-    const cartTab = document.getElementById('tab-cart');
-    const b = document.getElementById('tabCartBadge');
-    if(b){ b.textContent = tq || ''; b.classList.toggle('on', tq > 0); }
-    if(cartTab){ cartTab.classList.toggle('has-items', tq > 0); }
-    if(!tq){ _stopTimer(); state.cartExpireAt = 0; localStorage.removeItem('tb_cart_expire'); }
+    const b  = document.getElementById('tabCartBadge');
+    const ct = document.getElementById('tab-cart');
+    if(b){  b.textContent = tq || ''; b.classList.toggle('on', tq > 0); }
+    if(ct){ ct.classList.toggle('has-items', tq > 0); }
+    if(!tq && !state.cartExpireAt) _stopTimer();
   }
 
+  // ── Отменить корзину ──
   function cancelCart(){
     haptic();
-    state.cart = []; state.cartExpireAt = 0;
     _stopTimer();
-    localStorage.removeItem('tb_cart'); localStorage.removeItem('tb_cart_expire');
+    state.cart = []; state.cartExpireAt = 0;
+    localStorage.removeItem('tb_cart');
+    localStorage.removeItem('tb_cart_expire');
     _clearCartOnServer();
-    updateCartUI(); closeCart();
+    updateCartUI();
+    closeCart();
     showToast('🗑 Корзина очищена', '');
   }
 
+  // ── Открыть / закрыть корзину ──
   function openCart(){
     renderCartContent();
     document.getElementById('shCart').classList.add('on');
-    if(state.cart.length && state.cartExpireAt) _startTimer();
+    if(state.cart.length && state.cartExpireAt && Date.now() < state.cartExpireAt){
+      _startTimer();
+    }
   }
+
   function closeCart(){
     document.getElementById('shCart').classList.remove('on');
     _stopTimer();
   }
 
+  // ── Убрать позицию из корзины ──
   function removeFromCart(ttId){
     state.cart = state.cart.filter(i => i.tt_id !== ttId);
-    if(!state.cart.length){ state.cartExpireAt = 0; localStorage.removeItem('tb_cart_expire'); }
-    saveCart();
+    if(!state.cart.length){ state.cartExpireAt = 0; }
+    _saveCartLocal();
     _syncCartToServer();
-    renderCartContent(); haptic();
+    renderCartContent();
+    haptic();
   }
 
-  function renderCartContent(){
-    const c = document.getElementById('cartContent');
-    const pb = document.getElementById('payBtn');
-    const cb = document.getElementById('cancelBtn');
-    if(!state.cart.length){
-      if(pb){ pb.disabled = true; pb.textContent = 'Корзина пуста'; }
-      if(cb) cb.style.display = 'none';
-      c.innerHTML = '<div class="empty"><div class="empty-ico">🛒</div><div>Корзина пуста</div></div>';
-      return;
-    }
-    if(pb){ pb.disabled = false; pb.textContent = '💳 Оплатить'; }
-    if(cb) cb.style.display = '';
-    const tot = state.cart.reduce((s,i) => s + i.price * i.qty, 0);
-    // Блок таймера вверху
-    const timerHtml = state.cartExpireAt
-      ? `<div id="cartTimerBlock" class="cart-timer ok"></div>`
-      : '';
-    c.innerHTML = timerHtml + state.cart.map(it => `
-      <div class="ci">
-        <div class="ci-title">${it.event_title}</div>
-        <div class="ci-sub">🎫 ${it.tt_name} × ${it.qty} шт · 📅 ${it.event_date} ${it.event_time}</div>
-        <div class="ci-foot">
-          <div class="ci-price">${fmt(it.price * it.qty)}</div>
-          <button class="btn bd bsm" onclick="APP.removeFromCart(${it.tt_id})">✕ Убрать</button>
-        </div>
-      </div>`).join('') +
-      `<div class="total-row">
-        <span class="total-lbl">Итого</span>
-        <span class="total-val">${fmt(tot)}</span>
-      </div>`;
-    // Сразу рендерим первое значение таймера
-    if(state.cartExpireAt){
-      const left = Math.max(0, Math.floor((state.cartExpireAt - Date.now()) / 1000));
-      _renderTimerBlock(left);
-    }
-  }
-
-  // ── ОПЛАТА ────────────────────────────────────────
   async function pay(){
     if(!state.cart.length) return;
     const btn = document.getElementById('payBtn');
     btn.disabled = true; btn.innerHTML = '<div class="ld"></div>';
     haptic();
+    let ok = false;
     try{
       await apiFetch('/api/order', {
         method: 'POST',
@@ -1041,10 +1035,24 @@ const APP = (() => {
           total:   state.cart.reduce((s,i) => s + i.price * i.qty, 0)
         })
       });
+      ok = true;
     } catch(e){
-      if(TG) try{ TG.sendData(JSON.stringify({action:'order', items:state.cart, user_id:TG_USER_ID})); }catch{}
+      // Fallback — отправляем через Telegram.sendData
+      if(TG){ try{ TG.sendData(JSON.stringify({action:'order', items:state.cart, user_id:TG_USER_ID})); ok=true; }catch{} }
     }
-    state.cart = []; saveCart(); closeCart();
+    if(!ok){
+      btn.disabled = false; btn.textContent = '💳 Оплатить';
+      showToast('❌ Ошибка соединения, попробуйте ещё раз', 'err');
+      return;
+    }
+    // Очищаем корзину везде
+    _stopTimer();
+    state.cart = []; state.cartExpireAt = 0;
+    localStorage.removeItem('tb_cart');
+    localStorage.removeItem('tb_cart_expire');
+    _clearCartOnServer();
+    updateCartUI();
+    closeCart();
     setTimeout(() => {
       document.getElementById('shSuccess').classList.add('on');
       haptic('success');
@@ -1388,7 +1396,7 @@ const APP = (() => {
   });
 
   // ── INIT ──────────────────────────────────────────
-  async function init(){
+  function init(){
     _initEvents();
     const saved = localStorage.getItem('tb_role');
     if(saved){
@@ -1407,13 +1415,14 @@ const APP = (() => {
       goTo('pgOnboard');
     }
 
-    // Загружаем корзину с сервера (приоритет над localStorage)
-    // Показываем localStorage сразу пока ждём сервер
+    // Показываем локальную корзину сразу (мгновенно)
     updateCartUI();
-    const loaded = await _loadCartFromServer();
-    if(loaded){
-      updateCartUI();
-      showToast('🛒 Корзина восстановлена', 'ok');
+
+    // Если локально пусто — пробуем восстановить с сервера (смена устройства)
+    if(!state.cart.length && TG_USER_ID){
+      _loadCartFromServer().then(loaded => {
+        if(loaded){ updateCartUI(); showToast('🛒 Корзина восстановлена', 'ok'); }
+      });
     }
   }
 
