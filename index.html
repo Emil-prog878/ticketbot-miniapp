@@ -877,7 +877,52 @@ const APP = (() => {
     }
   }
 
-  // ── КОРЗИНА ───────────────────────────────────────
+  // ── КОРЗИНА: СОХРАНЕНИЕ (сервер + localStorage как fallback) ─────────────
+  async function _syncCartToServer(){
+    if(!TG_USER_ID) return;                      // нет user_id — только localStorage
+    try {
+      const res = await apiFetch('/api/cart', {
+        method: 'POST',
+        body: JSON.stringify({ items: state.cart })
+      });
+      // Сервер вернул актуальный expire_at — обновляем
+      if(res.expire_at){
+        state.cartExpireAt = res.expire_at;
+        localStorage.setItem('tb_cart_expire', String(res.expire_at));
+      }
+    } catch(e) {
+      console.warn('Cart sync failed, using localStorage only:', e);
+    }
+  }
+
+  async function _loadCartFromServer(){
+    if(!TG_USER_ID) return false;
+    try {
+      const res = await apiFetch('/api/cart');
+      if(res.items && res.items.length > 0){
+        state.cart       = res.items;
+        state.cartExpireAt = res.expire_at || 0;
+        // Синхронизируем в localStorage тоже
+        localStorage.setItem('tb_cart',        JSON.stringify(state.cart));
+        localStorage.setItem('tb_cart_expire', String(state.cartExpireAt));
+        return true;
+      } else {
+        // Сервер говорит корзина пуста — сбрасываем и локально
+        state.cart = []; state.cartExpireAt = 0;
+        localStorage.removeItem('tb_cart'); localStorage.removeItem('tb_cart_expire');
+        return false;
+      }
+    } catch(e) {
+      console.warn('Could not load cart from server, using localStorage:', e);
+      return false;
+    }
+  }
+
+  async function _clearCartOnServer(){
+    if(!TG_USER_ID) return;
+    try { await apiFetch('/api/cart', { method: 'DELETE' }); } catch {}
+  }
+
   function addToCart(){
     if(!state.curTicketType || !state.curEvent) return;
     const ev = state.curEvent, tt = state.curTicketType;
@@ -888,9 +933,9 @@ const APP = (() => {
       event_time: ev.time, event_age: ev.age_rating, venue: ev.venue,
       tt_id: tt.id, tt_name: tt.name, price: tt.price, qty: state.qty
     });
-    // Ставим/обновляем таймер: всегда 15 мин от момента последнего добавления
     state.cartExpireAt = Date.now() + CART_TTL * 1000;
     saveCart();
+    _syncCartToServer();
     haptic('success');
     showToast('✅ Добавлено в корзину!', 'ok');
     document.getElementById('addBtnBar').style.display = 'none';
@@ -913,7 +958,6 @@ const APP = (() => {
     const b = document.getElementById('tabCartBadge');
     if(b){ b.textContent = tq || ''; b.classList.toggle('on', tq > 0); }
     if(cartTab){ cartTab.classList.toggle('has-items', tq > 0); }
-    // Если корзина опустела — останавливаем таймер
     if(!tq){ _stopTimer(); state.cartExpireAt = 0; localStorage.removeItem('tb_cart_expire'); }
   }
 
@@ -922,6 +966,7 @@ const APP = (() => {
     state.cart = []; state.cartExpireAt = 0;
     _stopTimer();
     localStorage.removeItem('tb_cart'); localStorage.removeItem('tb_cart_expire');
+    _clearCartOnServer();
     updateCartUI(); closeCart();
     showToast('🗑 Корзина очищена', '');
   }
@@ -929,7 +974,6 @@ const APP = (() => {
   function openCart(){
     renderCartContent();
     document.getElementById('shCart').classList.add('on');
-    // Запускаем тикающий таймер пока шторка открыта
     if(state.cart.length && state.cartExpireAt) _startTimer();
   }
   function closeCart(){
@@ -940,7 +984,9 @@ const APP = (() => {
   function removeFromCart(ttId){
     state.cart = state.cart.filter(i => i.tt_id !== ttId);
     if(!state.cart.length){ state.cartExpireAt = 0; localStorage.removeItem('tb_cart_expire'); }
-    saveCart(); renderCartContent(); haptic();
+    saveCart();
+    _syncCartToServer();
+    renderCartContent(); haptic();
   }
 
   function renderCartContent(){
@@ -1342,7 +1388,7 @@ const APP = (() => {
   });
 
   // ── INIT ──────────────────────────────────────────
-  function init(){
+  async function init(){
     _initEvents();
     const saved = localStorage.getItem('tb_role');
     if(saved){
@@ -1360,10 +1406,14 @@ const APP = (() => {
     } else {
       goTo('pgOnboard');
     }
+
+    // Загружаем корзину с сервера (приоритет над localStorage)
+    // Показываем localStorage сразу пока ждём сервер
     updateCartUI();
-    // Если была корзина с таймером — покажем бейдж сразу
-    if(state.cart.length && state.cartExpireAt && Date.now() < state.cartExpireAt){
+    const loaded = await _loadCartFromServer();
+    if(loaded){
       updateCartUI();
+      showToast('🛒 Корзина восстановлена', 'ok');
     }
   }
 
