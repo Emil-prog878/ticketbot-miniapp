@@ -338,7 +338,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: " https://affects-pas-spaces-once.trycloudflare.com ",
+  API: "https://YOUR_BOT_BACKEND_URL",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -947,12 +947,21 @@ const APP = (() => {
 
 // Демо данные для оффлайн режима
 const DEMO_EVENTS=[
-  {id:1,title:"Imagine Dragons Live",category:"concert",emoji:"🎵",venue:"Миллий боғ",city:"Тошкент",date:"15.06.2025",time:"19:00",age_rating:"12+",description:"Грандиозное живое шоу!",
-   ticket_types:[{id:1,name:"Стандарт",price:350000,available:120,total:200},{id:2,name:"VIP",price:850000,available:8,total:30}]},
-  {id:2,title:"Мусиқали Кеча",category:"theater",emoji:"🎭",venue:"Навоий театри",city:"Тошкент",date:"22.06.2025",time:"18:30",age_rating:"0+",description:"Классический спектакль.",
-   ticket_types:[{id:4,name:"Партер",price:500000,available:80,total:150},{id:5,name:"Балкон",price:250000,available:200,total:300}]},
-  {id:3,title:"UFC Fight Night",category:"sport",emoji:"🥊",venue:"Humo Arena",city:"Тошкент",date:"30.06.2025",time:"20:00",age_rating:"16+",description:"Топовые бойцы в прямом эфире!",
+  {id:1,title:"Imagine Dragons Live",category:"concert",emoji:"🎵",venue:"Миллий боғ амфитеатри",city:"Тошкент",date:"15.06.2025",time:"19:00",age_rating:"12+",
+   description:"Грандиозное шоу мирового уровня. Лазеры, конфетти и хиты из всех альбомов. Живой звук, 3 часа незабываемой музыки!",
+   ticket_types:[{id:1,name:"Стандарт",price:350000,available:120,total:200},{id:2,name:"VIP",price:850000,available:8,total:30},{id:3,name:"Студент",price:220000,available:40,total:50}]},
+  {id:2,title:"Мусиқали Кеча",category:"theater",emoji:"🎭",venue:"Навоий театри",city:"Тошкент",date:"22.06.2025",time:"18:30",age_rating:"0+",
+   description:"Классический спектакль в исполнении ведущей труппы Узбекистана. Вечер высокого искусства и прекрасной музыки.",
+   ticket_types:[{id:4,name:"Партер",price:500000,available:80,total:150},{id:5,name:"Балкон",price:250000,available:200,total:300},{id:6,name:"Ложа VIP",price:1200000,available:4,total:8}]},
+  {id:3,title:"UFC Fight Night Tashkent",category:"sport",emoji:"🥊",venue:"Humo Arena",city:"Тошкент",date:"30.06.2025",time:"20:00",age_rating:"16+",
+   description:"Вечер смешанных единоборств. Топовые бойцы в прямом эфире! Незабываемое зрелище для всей семьи.",
    ticket_types:[{id:7,name:"Трибуна",price:200000,available:500,total:1000},{id:8,name:"Ринг-сайд",price:1500000,available:3,total:20}]},
+  {id:4,title:"Tashkent Music Fest 2025",category:"festival",emoji:"🎪",venue:"Ботаника боғи",city:"Тошкент",date:"12.07.2025",time:"12:00",age_rating:"0+",
+   description:"Главный летний фестиваль с 30+ артистами на 5 сценах. Еда, развлечения, живая музыка целый день!",
+   ticket_types:[{id:9,name:"Однодневный",price:450000,available:1000,total:5000},{id:10,name:"VIP-зона",price:1200000,available:50,total:100}]},
+  {id:5,title:"Ўзбек Рассомлари",category:"exhibition",emoji:"🖼",venue:"Санъат музейи",city:"Тошкент",date:"01.06.2025",time:"10:00",age_rating:"0+",
+   description:"Выставка современного узбекского искусства. Живопись, скульптура, инсталляции от ведущих мастеров страны.",
+   ticket_types:[{id:11,name:"Взрослый",price:80000,available:300,total:500},{id:12,name:"Льготный",price:40000,available:100,total:200}]},
 ];
 
 APP.init();
