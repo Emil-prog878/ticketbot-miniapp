@@ -984,6 +984,46 @@ const APP = (() => {
     showToast('🗑 Корзина очищена', '');
   }
 
+  // ── Рендер содержимого корзины ──
+  function renderCartContent(){
+    const c  = document.getElementById('cartContent');
+    const pb = document.getElementById('payBtn');
+    const cb = document.getElementById('cancelBtn');
+    if(!c) return;
+
+    if(!state.cart.length){
+      if(pb){ pb.disabled = true; pb.textContent = 'Корзина пуста'; }
+      if(cb) cb.style.display = 'none';
+      c.innerHTML = '<div class="empty"><div class="empty-ico">🛒</div><div>Корзина пуста</div></div>';
+      return;
+    }
+
+    if(pb){ pb.disabled = false; pb.textContent = '💳 Оплатить'; }
+    if(cb) cb.style.display = '';
+
+    const tot = state.cart.reduce((s,i) => s + i.price * i.qty, 0);
+    const timerHtml = state.cartExpireAt ? `<div id="cartTimerBlock" class="cart-timer ok"></div>` : '';
+
+    c.innerHTML = timerHtml + state.cart.map(it => `
+      <div class="ci">
+        <div class="ci-title">${it.event_title}</div>
+        <div class="ci-sub">🎫 ${it.tt_name} × ${it.qty} шт · 📅 ${it.event_date} ${it.event_time}</div>
+        <div class="ci-foot">
+          <div class="ci-price">${fmt(it.price * it.qty)}</div>
+          <button class="btn bd bsm" onclick="APP.removeFromCart(${it.tt_id})">✕ Убрать</button>
+        </div>
+      </div>`).join('') +
+      `<div class="total-row">
+        <span class="total-lbl">Итого</span>
+        <span class="total-val">${fmt(tot)}</span>
+      </div>`;
+
+    if(state.cartExpireAt){
+      const left = Math.max(0, Math.floor((state.cartExpireAt - Date.now()) / 1000));
+      _renderTimerBlock(left);
+    }
+  }
+
   // ── Открыть / закрыть корзину ──
   function openCart(){
     renderCartContent();
