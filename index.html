@@ -242,8 +242,8 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .qty-n{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;min-width:22px;text-align:center}
 
 /* ── ШТОРКИ ── */
-.sh-wrap{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
-.sh-wrap.on{pointer-events:all}
+.sh-wrap{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none;visibility:hidden}
+.sh-wrap.on{pointer-events:all;visibility:visible;z-index:300}
 .sh-ov{position:absolute;inset:0;background:rgba(0,0,0,.65);opacity:0;transition:opacity .28s}
 .sh-wrap.on .sh-ov{opacity:1}
 .sh-body{position:relative;z-index:1;background:var(--bg2);border-radius:24px 24px 0 0;
