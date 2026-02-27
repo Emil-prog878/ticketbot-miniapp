@@ -443,7 +443,7 @@ textarea.fi{resize:vertical;min-height:70px}
     </button>
     <span class="d-he" id="dEmoji"></span>
   </div>
-  <div class="scr" style="padding-top:0;padding-bottom:calc(var(--tab-h) + 80px)">
+  <div class="scr" style="padding-top:0">
     <div style="padding:12px">
       <div class="d-cat" id="dCat"></div>
       <div class="d-title" id="dTitle"></div>
@@ -459,14 +459,14 @@ textarea.fi{resize:vertical;min-height:70px}
           <button class="qty-btn" onclick="APP.changeQty(1)">+</button>
         </div>
       </div>
+      <!-- Кнопка добавления — обычный элемент в скролле, никакого fixed -->
+      <button class="btn bp" id="addBtn" onclick="APP.addToCart()" disabled style="margin-top:8px;margin-bottom:8px">
+        Выберите тип билета
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Кнопка "В корзину" — фиксированная над таббаром, управляется JS -->
-<div id="addBtnBar" style="position:fixed;bottom:calc(var(--tab-h) + env(safe-area-inset-bottom));left:0;right:0;padding:10px 14px 12px;background:rgba(8,8,18,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);z-index:115;display:none">
-  <button class="btn bp" id="addBtn" onclick="APP.addToCart()" disabled>Выберите тип билета</button>
-</div>
 
 <!-- ══════════════ КОРЗИНА (ШТОРКА) ══════════════ -->
 <div class="sh-wrap" id="shCart">
@@ -693,7 +693,6 @@ const APP = (() => {
     // Кнопка назад в деталях события
     document.getElementById('detailBackBtn')?.addEventListener('click', () => {
       haptic();
-      document.getElementById('addBtnBar').style.display = 'none';
       _setActiveTab('events');
       goTo('pgBuyer');
     });
@@ -791,7 +790,6 @@ const APP = (() => {
     state.curEvent = ev; state.curTicketType = null; state.qty = 1;
 
     // Показываем панель кнопки
-    document.getElementById('addBtnBar').style.display = 'block';
 
     const hero = document.getElementById('dHero');
     hero.querySelectorAll('img').forEach(i => i.remove());
@@ -947,7 +945,6 @@ const APP = (() => {
     _syncCartToServer();    // async, не ждём
     haptic('success');
     showToast('✅ Добавлено в корзину!', 'ok');
-    document.getElementById('addBtnBar').style.display = 'none';
     _setActiveTab('events');
     goTo('pgBuyer');
   }
