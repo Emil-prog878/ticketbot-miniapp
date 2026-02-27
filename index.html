@@ -461,20 +461,11 @@ textarea.fi{resize:vertical;min-height:70px}
       </div>
     </div>
   </div>
-  <!-- Кнопка добавления: z-index выше таббара, фиксирована над ним -->
-  <div style="
-    position:fixed;
-    bottom:calc(var(--tab-h) + env(safe-area-inset-bottom));
-    left:0;right:0;
-    padding:10px 14px 12px;
-    background:rgba(8,8,18,.97);
-    backdrop-filter:blur(20px);
-    border-top:1px solid var(--bdr);
-    z-index:110;
-    display:none;
-  " id="addBtnBar">
-    <button class="btn bp" id="addBtn" onclick="APP.addToCart()" disabled>Выберите тип билета</button>
-  </div>
+</div>
+
+<!-- Кнопка "В корзину" — фиксированная над таббаром, управляется JS -->
+<div id="addBtnBar" style="position:fixed;bottom:calc(var(--tab-h) + env(safe-area-inset-bottom));left:0;right:0;padding:10px 14px 12px;background:rgba(8,8,18,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bdr);z-index:115;display:none">
+  <button class="btn bp" id="addBtn" onclick="APP.addToCart()" disabled>Выберите тип билета</button>
 </div>
 
 <!-- ══════════════ КОРЗИНА (ШТОРКА) ══════════════ -->
@@ -527,7 +518,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://changed-climate-well-collecting.trycloudflare.com",
+  API: "https://YOUR_BOT_BACKEND_URL",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
