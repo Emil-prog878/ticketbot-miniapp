@@ -355,6 +355,74 @@ textarea.fi{resize:vertical;min-height:70px}
   padding:13px 18px;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;
   cursor:pointer;flex:1;transition:all .15s;position:relative;overflow:hidden}
 .btn-cancel:active{transform:scale(.96);background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.3)}
+/* ── ПОКУПАТЕЛЬСКИЙ КАБИНЕТ ── */
+.bc-header{padding:20px 16px 12px;background:linear-gradient(160deg,rgba(124,58,237,.15) 0%,transparent 60%)}
+.bc-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--a2));
+  display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:10px;
+  box-shadow:0 4px 20px rgba(124,58,237,.4)}
+.bc-name{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;margin-bottom:2px}
+.bc-sub{font-size:12px;color:var(--muted)}
+.bc-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--bdr);overflow-x:auto;flex-shrink:0}
+.bc-tabs::-webkit-scrollbar{display:none}
+.bc-tab{flex:1;padding:12px 6px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap}
+.bc-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.order-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:16px;
+  margin-bottom:10px;overflow:hidden;animation:fadeUp .28s ease both}
+.order-head{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--bdr)}
+.order-id{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;color:var(--muted)}
+.order-status{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px}
+.order-status.paid{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.order-status.pending{background:rgba(245,158,11,.12);color:var(--gold);border:1px solid rgba(245,158,11,.3)}
+.order-status.cancelled{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.order-body{padding:12px 14px}
+.order-event{font-weight:700;font-size:13px;margin-bottom:4px}
+.order-meta{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6}
+.order-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.order-total{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:800;color:var(--a2)}
+.order-date{font-size:10px;color:var(--muted)}
+.qr-section{padding:0 14px 14px}
+.qr-ticket{background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;
+  padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.qr-img-wrap{width:64px;height:64px;background:#fff;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.qr-img-wrap img{width:100%;height:100%;object-fit:contain}
+.qr-info{flex:1;min-width:0}
+.qr-tname{font-weight:700;font-size:12px;margin-bottom:3px}
+.qr-code-txt{font-size:10px;color:var(--muted);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qr-expand-btn{background:var(--bg4);border:1px solid var(--bdr);border-radius:8px;
+  color:var(--txt);font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.qr-expand-btn:active{background:var(--accent);border-color:var(--accent)}
+.qr-modal{position:fixed;inset:0;z-index:400;display:flex;align-items:center;
+  justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);
+  opacity:0;pointer-events:none;transition:opacity .22s}
+.qr-modal.on{opacity:1;pointer-events:all}
+.qr-modal-box{background:var(--bg2);border:1px solid var(--bdr);border-radius:24px;
+  padding:28px 24px;text-align:center;width:min(320px,90vw);
+  transform:scale(.9);transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+.qr-modal.on .qr-modal-box{transform:scale(1)}
+.qr-modal-title{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px}
+.qr-modal-sub{font-size:11px;color:var(--muted);margin-bottom:18px}
+.qr-modal-img{width:210px;height:210px;background:#fff;border-radius:16px;margin:0 auto 14px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.qr-modal-img img{width:100%;height:100%;object-fit:contain}
+.qr-modal-code{font-family:monospace;font-size:11px;color:var(--muted);
+  background:var(--bg3);border-radius:8px;padding:7px 12px;margin-bottom:14px}
+.profile-section{padding:16px}
+.profile-field{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;
+  padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:12px}
+.pf-ico{font-size:20px;flex-shrink:0}
+.pf-body{flex:1}
+.pf-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.pf-val{font-size:14px;font-weight:600}
+.pf-val.empty{color:var(--muted);font-style:italic;font-weight:400}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:14px}
+.stats-mini{background:var(--bg2);border:1px solid var(--bdr);border-radius:13px;
+  padding:12px 8px;text-align:center;animation:fadeUp .28s ease both}
+.sm-val{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:800;color:var(--a2)}
+.sm-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
+
 .skel{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);
   background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px}
 .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-120px);
@@ -405,7 +473,7 @@ textarea.fi{resize:vertical;min-height:70px}
 <div class="page" id="pgOnboard">
   <span class="ob-ico">🎟</span>
   <div class="ob-logo">TicketBot</div>
-  <div class="ob-sub">Покупай и продавай билеты<br>на лучшие события в Узбекистане</div>
+  <div class="ob-sub">Покупай и продавай билеты<br>на лучшие события в Telegram</div>
   <div class="role-cards">
     <div class="rc buyer" style="animation:fadeUp .35s .1s ease both" onclick="APP.chooseRole('buyer')">
       <span class="rc-ico">🎫</span>
@@ -499,7 +567,33 @@ textarea.fi{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- ══════════════ КАБИНЕТ ══════════════ -->
+<!-- ══════════════ ПОКУПАТЕЛЬСКИЙ КАБИНЕТ ══════════════ -->
+<div class="page hide" id="pgBuyerCabinet">
+  <div class="bc-header">
+    <div class="bc-avatar" id="bcAvatar">👤</div>
+    <div class="bc-name" id="bcName">Загрузка...</div>
+    <div class="bc-sub" id="bcSub">Покупатель</div>
+  </div>
+  <div class="bc-tabs">
+    <div class="bc-tab on" id="bct-tickets" onclick="APP.buyerTab('tickets')">🎫 Билеты</div>
+    <div class="bc-tab" id="bct-history" onclick="APP.buyerTab('history')">📋 История</div>
+    <div class="bc-tab" id="bct-profile" onclick="APP.buyerTab('profile')">👤 Профиль</div>
+  </div>
+  <div class="scr" id="bcContent"></div>
+</div>
+
+<!-- QR модальное окно -->
+<div class="qr-modal" id="qrModal">
+  <div class="qr-modal-box">
+    <div class="qr-modal-title" id="qrModalTitle"></div>
+    <div class="qr-modal-sub" id="qrModalSub"></div>
+    <div class="qr-modal-img"><img id="qrModalImg" src="" alt="QR"></div>
+    <div class="qr-modal-code" id="qrModalCode"></div>
+    <button class="btn bp" onclick="APP.closeQrModal()">✕ Закрыть</button>
+  </div>
+</div>
+
+<!-- ══════════════ КАБИНЕТ ОРГАНИЗАТОРА ══════════════ -->
 <div class="page hide" id="pgSeller">
   <div class="hdr">
     <div class="hdr-top">
@@ -536,7 +630,7 @@ const APP = (() => {
   let state = {
     role:          '',
     cart:          JSON.parse(localStorage.getItem('tb_cart') || '[]'),
-    cartExpireAt:  parseInt(localStorage.getItem('tb_cart_expire') || '0'), // timestamp ms
+    cartExpireAt:  parseInt(localStorage.getItem('tb_cart_expire') || '0'),
     events:        [],
     curEvent:      null,
     curTicketType: null,
@@ -544,6 +638,7 @@ const APP = (() => {
     filter:        'all',
     activeTab:     'events',
     currentSelTab: 'stats',
+    buyerTab:      'tickets',
     _timerInterval: null,
   };
 
@@ -649,8 +744,12 @@ const APP = (() => {
       loadEvents();
       goTo('pgBuyer');
     } else if(tab === 'cabinet'){
-      goTo('pgSeller');
-      sellerTab(state.currentSelTab || 'stats');
+      if(state.role === 'buyer'){
+        openBuyerCabinet();
+      } else {
+        goTo('pgSeller');
+        sellerTab(state.currentSelTab || 'stats');
+      }
     }
   }
 
@@ -1091,7 +1190,199 @@ const APP = (() => {
     goTo('pgBuyer');
   }
 
-  // ══════════════ КАБИНЕТ ══════════════
+  // ══════════════ ПОКУПАТЕЛЬСКИЙ КАБИНЕТ ══════════════
+
+  function buyerTab(tab){
+    haptic();
+    state.buyerTab = tab;
+    document.querySelectorAll('.bc-tab').forEach(el => el.classList.remove('on'));
+    document.getElementById('bct-' + tab)?.classList.add('on');
+    if(tab === 'tickets')  renderMyTickets();
+    if(tab === 'history')  renderOrderHistory();
+    if(tab === 'profile')  renderBuyerProfile();
+  }
+
+  function _renderBuyerHeader(){
+    const user = TG?.initDataUnsafe?.user;
+    if(!user) return;
+    const name = [user.first_name, user.last_name].filter(Boolean).join(' ');
+    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('bcAvatar').textContent = initials || '👤';
+    document.getElementById('bcName').textContent   = name || 'Пользователь';
+    document.getElementById('bcSub').textContent    = user.username ? '@' + user.username : 'Покупатель';
+  }
+
+  async function openBuyerCabinet(){
+    _renderBuyerHeader();
+    goTo('pgBuyerCabinet');
+    buyerTab(state.buyerTab || 'tickets');
+  }
+
+  // ── Мои активные билеты ──────────────────────────
+  async function renderMyTickets(){
+    const c = document.getElementById('bcContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    let orders = [];
+    try { const r = await apiFetch('/api/my/orders'); orders = r.orders || []; } catch {}
+
+    // Только оплаченные с активными QR
+    const paid = orders.filter(o => o.status === 'paid');
+    if(!paid.length){
+      c.innerHTML = `<div class="empty">
+        <div class="empty-ico">🎫</div>
+        <div>Нет купленных билетов</div>
+        <div style="font-size:11px;margin-top:6px">Перейди в События и купи первый билет!</div>
+      </div>
+      <div style="padding:0 16px">
+        <button class="btn bp" onclick="APP.tabNav('events')">🎫 Смотреть события</button>
+      </div>`;
+      return;
+    }
+
+    const now = Date.now();
+    c.innerHTML = paid.map((order, oi) => order.items.map((item, ii) => {
+      const qrs = item.qr_codes || [];
+      return qrs.map((qr, qi) => `
+        <div class="order-card" style="margin:${oi===0&&ii===0&&qi===0?'12px':0} 12px 10px;animation-delay:${(oi+ii+qi)*.06}s">
+          <div class="order-head">
+            <div>
+              <div style="font-weight:700;font-size:13px">${item.event_title}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">📅 ${item.event_date} · ⏰ ${item.event_time}</div>
+            </div>
+            <span class="order-status paid">Активен</span>
+          </div>
+          <div class="order-body">
+            <div class="order-meta">📍 ${item.venue || '—'} &nbsp;·&nbsp; 🎫 ${item.ticket_type}</div>
+            <div class="qr-ticket">
+              <div class="qr-img-wrap">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qr)}" alt="QR">
+              </div>
+              <div class="qr-info">
+                <div class="qr-tname">${item.ticket_type}</div>
+                <div class="qr-code-txt">${qr}</div>
+              </div>
+              <button class="qr-expand-btn" onclick="APP.openQrModal('${qr}','${item.event_title}','${item.event_date} ${item.event_time}')">🔍 QR</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }).join('')).join('');
+  }
+
+  // ── История заказов ──────────────────────────────
+  async function renderOrderHistory(){
+    const c = document.getElementById('bcContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    let orders = [];
+    try { const r = await apiFetch('/api/my/orders'); orders = r.orders || []; } catch {}
+
+    if(!orders.length){
+      c.innerHTML = `<div class="empty"><div class="empty-ico">📋</div><div>История пуста</div></div>`;
+      return;
+    }
+
+    const statusLabel = { paid:'Оплачен', pending:'Ожидает', cancelled:'Отменён' };
+    c.innerHTML = '<div style="padding:12px">' + orders.map((o, i) => {
+      const items = o.items || [];
+      const firstItem = items[0] || {};
+      const totalQty  = items.reduce((s,it) => s + (it.qty||1), 0);
+      return `
+      <div class="order-card" style="animation-delay:${i*.05}s">
+        <div class="order-head">
+          <div class="order-id"># ${o.id}</div>
+          <span class="order-status ${o.status}">${statusLabel[o.status] || o.status}</span>
+        </div>
+        <div class="order-body">
+          <div class="order-event">${firstItem.event_title || '—'}</div>
+          <div class="order-meta">
+            📅 ${firstItem.event_date || '—'} &nbsp;·&nbsp; 🎫 ${totalQty} билет${totalQty===1?'':'а'}
+            ${items.length > 1 ? ` · ещё ${items.length-1} позиц.` : ''}
+          </div>
+          <div class="order-footer">
+            <div class="order-total">${fmt(o.total)}</div>
+            <div class="order-date">${o.created_at}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  // ── Профиль покупателя ───────────────────────────
+  async function renderBuyerProfile(){
+    const c = document.getElementById('bcContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+
+    const user = TG?.initDataUnsafe?.user || {};
+    let orders = [], totalSpent = 0, totalTickets = 0;
+    try {
+      const r = await apiFetch('/api/my/orders');
+      orders = r.orders || [];
+      const paid = orders.filter(o => o.status === 'paid');
+      totalSpent   = paid.reduce((s,o) => s + o.total, 0);
+      totalTickets = paid.reduce((s,o) => s + o.items.reduce((ss,it) => ss + (it.qty||1), 0), 0);
+    } catch {}
+
+    const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Пользователь';
+    c.innerHTML = `
+      <div class="profile-section">
+        <div class="stats-row">
+          <div class="stats-mini" style="animation-delay:.0s">
+            <div class="sm-val">${orders.filter(o=>o.status==='paid').length}</div>
+            <div class="sm-lbl">Заказов</div>
+          </div>
+          <div class="stats-mini" style="animation-delay:.06s">
+            <div class="sm-val">${totalTickets}</div>
+            <div class="sm-lbl">Билетов</div>
+          </div>
+          <div class="stats-mini" style="animation-delay:.12s">
+            <div class="sm-val">${totalSpent > 0 ? Math.round(totalSpent/1000)+'K' : '0'}</div>
+            <div class="sm-lbl">Сум потрачено</div>
+          </div>
+        </div>
+        <div class="profile-field">
+          <div class="pf-ico">👤</div>
+          <div class="pf-body">
+            <div class="pf-label">Имя</div>
+            <div class="pf-val">${name}</div>
+          </div>
+        </div>
+        ${user.username ? `
+        <div class="profile-field">
+          <div class="pf-ico">✈️</div>
+          <div class="pf-body">
+            <div class="pf-label">Telegram</div>
+            <div class="pf-val">@${user.username}</div>
+          </div>
+        </div>` : ''}
+        <div class="profile-field">
+          <div class="pf-ico">🆔</div>
+          <div class="pf-body">
+            <div class="pf-label">Telegram ID</div>
+            <div class="pf-val">${user.id || '—'}</div>
+          </div>
+        </div>
+        <div style="height:10px"></div>
+        <button class="btn" style="background:var(--bg3);color:var(--muted);border:1px solid var(--bdr);border-radius:14px;width:100%;padding:13px"
+          onclick="APP.tabNav('events')">🎫 Смотреть события</button>
+      </div>`;
+  }
+
+  // ── QR модальное ──────────────────────────────────
+  function openQrModal(qr, title, sub){
+    haptic();
+    document.getElementById('qrModalTitle').textContent = title;
+    document.getElementById('qrModalSub').textContent   = sub;
+    document.getElementById('qrModalCode').textContent  = qr;
+    document.getElementById('qrModalImg').src =
+      `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
+    document.getElementById('qrModal').classList.add('on');
+  }
+
+  function closeQrModal(){
+    haptic();
+    document.getElementById('qrModal').classList.remove('on');
+  }
+
+  // ══════════════ КАБИНЕТ ОРГАНИЗАТОРА ══════════════
 
   function sellerTab(tab){
     state.currentSelTab = tab;
@@ -1457,6 +1748,7 @@ const APP = (() => {
     filterEvents, setFilter,
     openEvent, selectTicket, changeQty, addToCart,
     openCart, closeCart, removeFromCart, cancelCart, pay, closeSuccess,
+    buyerTab, openBuyerCabinet, openQrModal, closeQrModal,
     sellerTab, renderStats, renderMyEvents, renderAddEvent, submitEvent,
     editEvent, deleteEvent,
     handleImageUpload, handlePosterUrl,
