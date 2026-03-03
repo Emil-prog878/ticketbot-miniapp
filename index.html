@@ -28,7 +28,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 @keyframes glow{0%,100%{box-shadow:0 0 15px rgba(124,58,237,.3)}50%{box-shadow:0 0 40px rgba(124,58,237,.65)}}
 @keyframes tabPop{0%{transform:translateY(0) scale(1)}40%{transform:translateY(-5px) scale(1.12)}100%{transform:translateY(0) scale(1)}}
 @keyframes dotIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scanAnim{0%{top:5%}50%{top:90%}100%{top:5%}}
 
 /* ── СТРАНИЦЫ ── */
 .page{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:10;transition:opacity .22s ease,transform .22s ease}
@@ -612,7 +612,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://rotation-insert-hundreds-command.trycloudflare.com",
+  API: "https://YOUR_BOT_BACKEND_URL",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -741,6 +741,7 @@ const APP = (() => {
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tab)?.classList.add('active');
     if(tab === 'events'){
+      _stopCamera();
       loadEvents();
       goTo('pgBuyer');
     } else if(tab === 'cabinet'){
@@ -1002,7 +1003,7 @@ const APP = (() => {
       const res = await apiFetch('/api/cart');
       if(!res || !res.items || !res.items.length) return false;
       // Проверяем что expire_at ещё не истёк
-      const exp = res.expire_at || 0;
+    const exp = res.expire_at || 0;
       if(exp && Date.now() > exp) return false;   // на сервере тоже истекло
       state.cart         = res.items;
       state.cartExpireAt = exp;
@@ -1385,6 +1386,8 @@ const APP = (() => {
   // ══════════════ КАБИНЕТ ОРГАНИЗАТОРА ══════════════
 
   function sellerTab(tab){
+    // Останавливаем камеру если уходим со сканера
+    if(state.currentSelTab === 'scan' && tab !== 'scan') _stopCamera();
     state.currentSelTab = tab;
     const tabs = ['stats','events','add','scan','promo'];
     document.querySelectorAll('.s-tab').forEach((el,i) => el.classList.toggle('on', tabs[i] === tab));
@@ -1599,50 +1602,258 @@ const APP = (() => {
 
   // ── СКАНЕР ────────────────────────────────────────
   function renderScanner(){
+    // Останавливаем предыдущую камеру если была
+    _stopCamera();
     document.getElementById('selContent').innerHTML = `
-      <div class="sec">📷 Проверка билета</div>
-      <div class="scan-box" id="scanBox">
-        <div style="font-size:50px;margin-bottom:10px">📷</div>
-        <div style="font-weight:700;margin-bottom:5px">Введите код билета</div>
-        <div style="font-size:11px;color:var(--muted)">UUID из QR-кода билета</div>
-      </div>
-      <div id="scanResult"></div>
-      <div class="fld">
-        <label class="fl">UUID код билета</label>
-        <input class="fi" id="qrInput" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      </div>
-      <button class="btn bp" id="scanBtn" onclick="APP.validateTicket()">🔍 Проверить</button>
-      <div style="height:20px"></div>`;
+      <div style="padding:14px">
+        <!-- Основной блок камеры -->
+        <div id="scanCameraWrap" style="position:relative;border-radius:20px;overflow:hidden;
+          background:#000;aspect-ratio:1;margin-bottom:14px;display:none">
+          <video id="scanVideo" playsinline muted
+            style="width:100%;height:100%;object-fit:cover;display:block"></video>
+          <!-- Прицел -->
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+            <div style="width:65%;aspect-ratio:1;position:relative">
+              <div style="position:absolute;top:0;left:0;width:28px;height:28px;border-top:3px solid #fff;border-left:3px solid #fff;border-radius:4px 0 0 0"></div>
+              <div style="position:absolute;top:0;right:0;width:28px;height:28px;border-top:3px solid #fff;border-right:3px solid #fff;border-radius:0 4px 0 0"></div>
+              <div style="position:absolute;bottom:0;left:0;width:28px;height:28px;border-bottom:3px solid #fff;border-left:3px solid #fff;border-radius:0 0 0 4px"></div>
+              <div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-bottom:3px solid #fff;border-right:3px solid #fff;border-radius:0 0 4px 0"></div>
+              <div id="scanLine" style="position:absolute;left:5%;right:5%;height:2px;
+                background:linear-gradient(90deg,transparent,var(--accent),var(--a2),var(--accent),transparent);
+                top:0;animation:scanAnim 2s ease-in-out infinite"></div>
+            </div>
+          </div>
+          <!-- Статус -->
+          <div id="scanStatus" style="position:absolute;bottom:14px;left:0;right:0;text-align:center">
+            <span style="background:rgba(0,0,0,.65);backdrop-filter:blur(8px);
+              color:#fff;font-size:12px;font-weight:600;padding:5px 14px;border-radius:99px">
+              Наведи на QR-код билета
+            </span>
+          </div>
+        </div>
+
+        <!-- Кнопка запуска камеры -->
+        <div id="scanStartWrap">
+          <div style="background:var(--bg2);border:2px dashed var(--bdr);border-radius:20px;
+            padding:36px 20px;text-align:center;margin-bottom:14px">
+            <div style="font-size:52px;margin-bottom:12px">📷</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px">Сканер QR-кодов</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:20px">
+              Наведи камеру на QR-код билета для мгновенной проверки
+            </div>
+            <button class="btn bp" onclick="APP.startCamera()" id="startCamBtn">
+              📷 Открыть камеру
+            </button>
+          </div>
+        </div>
+
+        <!-- Результат сканирования -->
+        <div id="scanResult"></div>
+
+        <!-- Ручной ввод (запасной вариант) -->
+        <details style="margin-top:8px">
+          <summary style="font-size:11px;color:var(--muted);cursor:pointer;padding:8px 0;list-style:none;
+            display:flex;align-items:center;gap:6px">
+            <span>⌨️ Ввести код вручную</span>
+          </summary>
+          <div style="margin-top:10px">
+            <div class="fld">
+              <input class="fi" id="qrInput" placeholder="UUID билета"
+                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            </div>
+            <button class="btn bp" id="scanBtn" onclick="APP.validateTicket()">🔍 Проверить</button>
+          </div>
+        </details>
+        <div style="height:20px"></div>
+        <canvas id="scanCanvas" style="display:none"></canvas>
+      </div>`;
+  }
+
+  // ── Запуск камеры ──────────────────────────────────
+  async function startCamera(){
+    const btn = document.getElementById('startCamBtn');
+    if(btn){ btn.disabled=true; btn.innerHTML='<div class="ld"></div>'; }
+
+    // Загружаем jsQR если ещё не загружен
+    if(!window.jsQR){
+      await new Promise((res,rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      }).catch(() => null);
+    }
+    if(!window.jsQR){
+      showToast('❌ Не удалось загрузить сканер','err');
+      if(btn){ btn.disabled=false; btn.textContent='📷 Открыть камеру'; }
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:1280} }
+      });
+      window._scanStream = stream;
+
+      const video = document.getElementById('scanVideo');
+      if(!video){ _stopCamera(); return; }
+      video.srcObject = stream;
+      await video.play();
+
+      // Показываем камеру, скрываем кнопку старта
+      document.getElementById('scanStartWrap').style.display = 'none';
+      document.getElementById('scanCameraWrap').style.display = 'block';
+
+      // Запускаем цикл сканирования
+      _scanLoop();
+
+    } catch(e){
+      if(btn){ btn.disabled=false; btn.textContent='📷 Открыть камеру'; }
+      if(e.name === 'NotAllowedError'){
+        showToast('❌ Нет доступа к камере — разреши в настройках','err');
+      } else {
+        showToast('❌ Камера недоступна','err');
+      }
+    }
+  }
+
+  function _scanLoop(){
+    const video  = document.getElementById('scanVideo');
+    const canvas = document.getElementById('scanCanvas');
+    if(!video || !canvas || !window._scanStream) return;
+
+    const ctx = canvas.getContext('2d');
+
+    function tick(){
+      if(!window._scanStream || !video || video.readyState < 2){
+        requestAnimationFrame(tick); return;
+      }
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'dontInvert'
+      });
+      if(code && code.data){
+        _stopCamera();
+        _onQrScanned(code.data);
+        return;
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function _stopCamera(){
+    if(window._scanStream){
+      window._scanStream.getTracks().forEach(t => t.stop());
+      window._scanStream = null;
+    }
+  }
+
+  async function _onQrScanned(qrData){
+    haptic('success');
+    // Показываем что считали
+    const statusEl = document.getElementById('scanStatus');
+    if(statusEl) statusEl.innerHTML = `
+      <span style="background:rgba(124,58,237,.8);backdrop-filter:blur(8px);
+        color:#fff;font-size:12px;font-weight:600;padding:5px 14px;border-radius:99px">
+        ✅ QR считан — проверяем...
+      </span>`;
+
+    // Скрываем камеру, показываем лоадер в результате
+    const camWrap = document.getElementById('scanCameraWrap');
+    const resEl   = document.getElementById('scanResult');
+    if(camWrap) camWrap.style.display = 'none';
+    if(resEl)   resEl.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+
+    // Проверяем билет
+    let result = null;
+    try { result = await apiFetch('/api/admin/validate', {method:'POST', body:JSON.stringify({qr_code:qrData})}); }
+    catch {}
+
+    _renderScanResult(result, qrData);
+  }
+
+  function _renderScanResult(result, qrData){
+    const el = document.getElementById('scanResult');
+    if(!el) return;
+    if(!result){
+      haptic('error');
+      el.innerHTML = `
+        <div class="scan-res bad">
+          <div style="font-size:28px;margin-bottom:8px">⚠️</div>
+          <div style="font-weight:700;font-size:15px">Ошибка соединения</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">Проверьте подключение к серверу</div>
+        </div>
+        ${_scanAgainBtn()}`;
+    } else if(result.status === 'valid'){
+      haptic('success');
+      el.innerHTML = `
+        <div class="scan-res ok" style="text-align:center;padding:20px 16px">
+          <div style="font-size:44px;margin-bottom:10px">✅</div>
+          <div style="font-weight:800;font-size:17px;color:var(--green);margin-bottom:12px">БИЛЕТ ДЕЙСТВИТЕЛЕН</div>
+          <div style="background:var(--bg3);border-radius:12px;padding:12px;text-align:left;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:6px">🎭 ${result.event||'—'}</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.8">
+              🎫 ${result.ticket_type||'—'}<br>
+              📅 ${result.date||'—'}<br>
+              📍 ${result.venue||'—'}
+            </div>
+          </div>
+        </div>
+        ${_scanAgainBtn('ok')}`;
+    } else if(result.status === 'used'){
+      haptic('error');
+      el.innerHTML = `
+        <div class="scan-res used" style="text-align:center;padding:20px 16px">
+          <div style="font-size:44px;margin-bottom:10px">⛔</div>
+          <div style="font-weight:800;font-size:17px;color:var(--red);margin-bottom:8px">УЖЕ ИСПОЛЬЗОВАН</div>
+          <div style="font-size:12px;color:var(--muted)">Использован: ${result.used_at||'—'}</div>
+        </div>
+        ${_scanAgainBtn('err')}`;
+    } else {
+      haptic('error');
+      el.innerHTML = `
+        <div class="scan-res bad" style="text-align:center;padding:20px 16px">
+          <div style="font-size:44px;margin-bottom:10px">❌</div>
+          <div style="font-weight:800;font-size:17px;margin-bottom:8px">БИЛЕТ НЕ НАЙДЕН</div>
+          <div style="font-size:12px;color:var(--muted)">QR-код не найден в базе</div>
+        </div>
+        ${_scanAgainBtn('err')}`;
+    }
+  }
+
+  function _scanAgainBtn(type=''){
+    return `<button class="btn bp" onclick="APP.scanAgain()"
+      style="margin-top:12px;${type==='ok'?'background:var(--green)':type==='err'?'background:var(--red)':''}">
+      📷 Сканировать ещё раз
+    </button>`;
+  }
+
+  function scanAgain(){
+    haptic();
+    document.getElementById('scanResult').innerHTML = '';
+    document.getElementById('scanStartWrap').style.display = 'block';
+    document.getElementById('scanCameraWrap').style.display = 'none';
+    const btn = document.getElementById('startCamBtn');
+    if(btn){ btn.disabled=false; btn.textContent='📷 Открыть камеру'; }
+    // Сразу запускаем камеру снова
+    startCamera();
   }
 
   async function validateTicket(){
     const code = document.getElementById('qrInput')?.value?.trim();
     if(!code){ showToast('❌ Введите код билета','err'); return; }
     const btn = document.getElementById('scanBtn');
-    btn.disabled = true; btn.innerHTML = '<div class="ld"></div>';
+    btn.disabled=true; btn.innerHTML='<div class="ld"></div>';
     let result = null;
-    try { result = await apiFetch('/api/admin/validate', {method:'POST', body:JSON.stringify({qr_code:code})}); }
-    catch(e){ console.error('Validate error:', e); }
-    btn.disabled = false; btn.textContent = '🔍 Проверить';
-    const el = document.getElementById('scanResult');
-    if(!result){
-      el.innerHTML = '<div class="scan-res bad"><div style="font-weight:700">⚠️ ОШИБКА СОЕДИНЕНИЯ</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Проверьте подключение к серверу</div></div>';
-      showToast('⚠️ Ошибка соединения','err');
-    } else if(result.status==='valid'){
-      haptic('success');
-      el.innerHTML = `<div class="scan-res ok"><div style="font-weight:700;margin-bottom:7px">✅ БИЛЕТ ДЕЙСТВИТЕЛЕН</div><div style="font-size:12px;color:var(--muted)">🎭 ${result.event}</div><div style="font-size:12px;color:var(--muted)">🎫 ${result.ticket_type}</div><div style="font-size:12px;color:var(--muted)">📅 ${result.date} · 📍 ${result.venue}</div></div>`;
-      showToast('✅ Билет принят!','ok');
-    } else if(result.status==='used'){
-      haptic('error');
-      el.innerHTML = `<div class="scan-res used"><div style="font-weight:700">⛔ УЖЕ ИСПОЛЬЗОВАН</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Использован: ${result.used_at||'—'}</div></div>`;
-      showToast('⛔ Билет уже использован','err');
-    } else {
-      haptic('error');
-      el.innerHTML = '<div class="scan-res bad"><div style="font-weight:700">❌ БИЛЕТ НЕ НАЙДЕН</div></div>';
-      showToast('❌ Недействительный билет','err');
-    }
-    document.getElementById('qrInput').value = '';
+    try { result = await apiFetch('/api/admin/validate',{method:'POST',body:JSON.stringify({qr_code:code})}); }
+    catch {}
+    btn.disabled=false; btn.textContent='🔍 Проверить';
+    _renderScanResult(result, code);
+    document.getElementById('qrInput').value='';
   }
 
   // ── ПРОМОКОДЫ ─────────────────────────────────────
@@ -1752,7 +1963,7 @@ const APP = (() => {
     sellerTab, renderStats, renderMyEvents, renderAddEvent, submitEvent,
     editEvent, deleteEvent,
     handleImageUpload, handlePosterUrl,
-    renderScanner, validateTicket,
+    renderScanner, validateTicket, startCamera, scanAgain,
     renderPromos, createPromo, deletePromo,
     init,
   };
