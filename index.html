@@ -518,7 +518,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://platinum-dogs-everywhere-dealing.trycloudflare.com",
+  API: "https://rotation-insert-hundreds-command.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -617,42 +617,40 @@ const APP = (() => {
   function goTo(pageId){
     document.querySelectorAll('.page').forEach(p => {
       p.classList.add('hide');
+      // Сбрасываем inline стили чтобы анимация работала при повторном показе
       p.style.transition = 'none';
+      p.style.opacity    = '';
+      p.style.transform  = '';
     });
     const pg = document.getElementById(pageId);
     if (!pg) return;
     pg.classList.remove('hide');
-    pg.style.opacity = '0';
-    pg.style.transform = 'translateY(10px)';
+    pg.style.transition = 'none';
+    pg.style.opacity    = '0';
+    pg.style.transform  = 'translateY(10px)';
     requestAnimationFrame(() => requestAnimationFrame(() => {
       pg.style.transition = 'opacity .22s ease, transform .22s ease';
-      pg.style.opacity = '1';
-      pg.style.transform = 'translateY(0)';
+      pg.style.opacity    = '1';
+      pg.style.transform  = 'translateY(0)';
     }));
   }
 
   // ── ТАББАР ────────────────────────────────────────
   function tabNav(tab){
     haptic();
-    // Если нажали корзину — открываем шторку, не меняем страницу
     if(tab === 'cart'){
       openCart();
       return;
     }
     state.activeTab = tab;
-    // Обновляем активный таб
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
     document.getElementById('tab-' + tab)?.classList.add('active');
     if(tab === 'events'){
-      if(state.role !== 'buyer') state.role = 'buyer';
-      localStorage.setItem('tb_role','buyer');
       loadEvents();
       goTo('pgBuyer');
     } else if(tab === 'cabinet'){
-      if(state.role !== 'seller') state.role = 'seller';
-      localStorage.setItem('tb_role','seller');
       goTo('pgSeller');
-      sellerTab('stats');
+      sellerTab(state.currentSelTab || 'stats');
     }
   }
 
