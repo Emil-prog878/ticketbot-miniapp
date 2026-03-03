@@ -1003,7 +1003,7 @@ const APP = (() => {
       const res = await apiFetch('/api/cart');
       if(!res || !res.items || !res.items.length) return false;
       // Проверяем что expire_at ещё не истёк
-    const exp = res.expire_at || 0;
+      const exp = res.expire_at || 0;
       if(exp && Date.now() > exp) return false;   // на сервере тоже истекло
       state.cart         = res.items;
       state.cartExpireAt = exp;
@@ -1674,21 +1674,6 @@ const APP = (() => {
     const btn = document.getElementById('startCamBtn');
     if(btn){ btn.disabled=true; btn.innerHTML='<div class="ld"></div>'; }
 
-    // Загружаем jsQR если ещё не загружен
-    if(!window.jsQR){
-      await new Promise((res,rej) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
-        s.onload = res; s.onerror = rej;
-        document.head.appendChild(s);
-      }).catch(() => null);
-    }
-    if(!window.jsQR){
-      showToast('❌ Не удалось загрузить сканер','err');
-      if(btn){ btn.disabled=false; btn.textContent='📷 Открыть камеру'; }
-      return;
-    }
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:1280} }
@@ -1700,11 +1685,9 @@ const APP = (() => {
       video.srcObject = stream;
       await video.play();
 
-      // Показываем камеру, скрываем кнопку старта
       document.getElementById('scanStartWrap').style.display = 'none';
       document.getElementById('scanCameraWrap').style.display = 'block';
 
-      // Запускаем цикл сканирования
       _scanLoop();
 
     } catch(e){
@@ -1722,30 +1705,51 @@ const APP = (() => {
     const canvas = document.getElementById('scanCanvas');
     if(!video || !canvas || !window._scanStream) return;
 
-    const ctx = canvas.getContext('2d');
+    // Пробуем BarcodeDetector (нативный API)
+    if(window.BarcodeDetector){
+      const detector = new BarcodeDetector({ formats: ['qr_code'] });
+      let scanning = true;
+      window._scanActive = true;
 
-    function tick(){
-      if(!window._scanStream || !video || video.readyState < 2){
-        requestAnimationFrame(tick); return;
+      async function tickNative(){
+        if(!window._scanActive || !window._scanStream) return;
+        try {
+          const codes = await detector.detect(video);
+          if(codes && codes.length > 0){
+            window._scanActive = false;
+            _stopCamera();
+            _onQrScanned(codes[0].rawValue);
+            return;
+          }
+        } catch {}
+        if(window._scanActive) setTimeout(tickNative, 200);
       }
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert'
-      });
-      if(code && code.data){
-        _stopCamera();
-        _onQrScanned(code.data);
-        return;
-      }
-      requestAnimationFrame(tick);
+      tickNative();
+      return;
     }
-    requestAnimationFrame(tick);
+
+    // Fallback: canvas + встроенный QR через ImageCapture или просто показываем ошибку
+    showToast('❌ Браузер не поддерживает сканирование QR','err');
+    const btn = document.getElementById('startCamBtn');
+    _stopCamera();
+    document.getElementById('scanStartWrap').style.display = 'block';
+    document.getElementById('scanCameraWrap').style.display = 'none';
+    if(btn){ btn.disabled=false; btn.textContent='📷 Открыть камеру'; }
+
+    // Показываем подсказку использовать ручной ввод
+    const res = document.getElementById('scanResult');
+    if(res) res.innerHTML = `
+      <div class="scan-res bad" style="text-align:center;padding:16px">
+        <div style="font-size:32px;margin-bottom:8px">📵</div>
+        <div style="font-weight:700">Сканер недоступен</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">
+          Используй ручной ввод UUID ниже,<br>или открой в Telegram на Android/iOS
+        </div>
+      </div>`;
   }
 
   function _stopCamera(){
+    window._scanActive = false;
     if(window._scanStream){
       window._scanStream.getTracks().forEach(t => t.stop());
       window._scanStream = null;
