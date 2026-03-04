@@ -1806,6 +1806,12 @@ const APP = (() => {
 
   async function _onQrScanned(qrData){
     haptic('success');
+    // Декодируем если вдруг URL-encoded
+    let code = qrData;
+    try { code = decodeURIComponent(qrData); } catch {}
+    // Берём только UUID если в строке есть лишнее (например URL)
+    const uuidMatch = code.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    if(uuidMatch) code = uuidMatch[0];
     // Показываем что считали
     const statusEl = document.getElementById('scanStatus');
     if(statusEl) statusEl.innerHTML = `
@@ -1822,10 +1828,10 @@ const APP = (() => {
 
     // Проверяем билет
     let result = null;
-    try { result = await apiFetch('/api/admin/validate', {method:'POST', body:JSON.stringify({qr_code:qrData})}); }
+    try { result = await apiFetch('/api/admin/validate', {method:'POST', body:JSON.stringify({qr_code:code})}); }
     catch {}
 
-    _renderScanResult(result, qrData);
+    _renderScanResult(result, code);
   }
 
   function _renderScanResult(result, qrData){
