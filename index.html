@@ -612,7 +612,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://rotation-insert-hundreds-command.trycloudflare.com",
+  API: "https://queensland-cleaners-stunning-rides.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -814,7 +814,7 @@ const APP = (() => {
   // ── СОБЫТИЯ ───────────────────────────────────────
   async function loadEvents(){
     renderSkeletons();
-    try { const data = await apiFetch('/api/events'); state.events = data; }
+    try { const data = await Fetch('//events'); state.events = data; }
     catch { state.events = DEMO_EVENTS; }
     renderChips();
     filterEvents();
@@ -982,7 +982,7 @@ const APP = (() => {
   async function _syncCartToServer(){
     if(!TG_USER_ID) return;
     try {
-      const res = await apiFetch('/api/cart', {
+      const res = await Fetch('//cart', {
         method: 'POST',
         body:   JSON.stringify({ items: state.cart })
       });
@@ -1000,7 +1000,7 @@ const APP = (() => {
   async function _loadCartFromServer(){
     if(!TG_USER_ID) return false;
     try {
-      const res = await apiFetch('/api/cart');
+      const res = await Fetch('//cart');
       if(!res || !res.items || !res.items.length) return false;
       // Проверяем что expire_at ещё не истёк
       const exp = res.expire_at || 0;
@@ -1019,7 +1019,7 @@ const APP = (() => {
   // ── Удалить корзину на сервере ──
   async function _clearCartOnServer(){
     if(!TG_USER_ID) return;
-    try { await apiFetch('/api/cart', { method: 'DELETE' }); } catch{}
+    try { await Fetch('//cart', { method: 'DELETE' }); } catch{}
   }
 
   // ── Добавить билет в корзину ──
