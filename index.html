@@ -1242,30 +1242,38 @@ const APP = (() => {
 
     const now = Date.now();
     c.innerHTML = paid.map((order, oi) => order.items.map((item, ii) => {
-      const qrs = item.qr_codes || [];
-      return qrs.map((qr, qi) => `
-        <div class="order-card" style="margin:${oi===0&&ii===0&&qi===0?'12px':0} 12px 10px;animation-delay:${(oi+ii+qi)*.06}s">
+      const tickets = item.tickets || [];
+      return tickets.map((t, qi) => {
+        const isUsed = t.status === 'used';
+        const statusHtml = isUsed
+          ? `<span class="order-status cancelled">Использован</span>`
+          : `<span class="order-status paid">Активен</span>`;
+        return `
+        <div class="order-card" style="margin:${oi===0&&ii===0&&qi===0?'12px':0} 12px 10px;animation-delay:${(oi+ii+qi)*.06}s;
+          ${isUsed ? 'opacity:0.6' : ''}">
           <div class="order-head">
             <div>
               <div style="font-weight:700;font-size:13px">${item.event_title}</div>
               <div style="font-size:11px;color:var(--muted);margin-top:2px">📅 ${item.event_date} · ⏰ ${item.event_time}</div>
             </div>
-            <span class="order-status paid">Активен</span>
+            ${statusHtml}
           </div>
           <div class="order-body">
             <div class="order-meta">📍 ${item.venue || '—'} &nbsp;·&nbsp; 🎫 ${item.ticket_type}</div>
+            ${isUsed ? `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">✅ Использован: ${t.used_at || '—'}</div>` : `
             <div class="qr-ticket">
               <div class="qr-img-wrap">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qr)}" alt="QR">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(t.qr)}" alt="QR">
               </div>
               <div class="qr-info">
                 <div class="qr-tname">${item.ticket_type}</div>
-                <div class="qr-code-txt">${qr}</div>
+                <div class="qr-code-txt">${t.qr}</div>
               </div>
-              <button class="qr-expand-btn" onclick="APP.openQrModal('${qr}','${item.event_title}','${item.event_date} ${item.event_time}')">🔍 QR</button>
-            </div>
+              <button class="qr-expand-btn" onclick="APP.openQrModal('${t.qr}','${item.event_title}','${item.event_date} ${item.event_time}')">🔍 QR</button>
+            </div>`}
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     }).join('')).join('');
   }
 
