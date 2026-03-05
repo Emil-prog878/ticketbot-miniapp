@@ -168,50 +168,22 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .rc:hover .rc-arr{transform:translateX(4px);color:var(--txt)}
 
 /* ── КАРТОЧКИ СОБЫТИЙ ── */
-.ev-list{display:flex;flex-direction:column;gap:12px}
-.ev-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:20px;overflow:hidden;
-  cursor:pointer;transition:all .18s;animation:fadeUp .3s ease both}
-.ev-card:active{transform:scale(.982)}
-.ev-card:hover{border-color:rgba(124,58,237,.35);box-shadow:0 8px 28px rgba(0,0,0,.35)}
-
-/* Постер — полная ширина сверху */
-.ev-poster{width:100%;height:155px;background:var(--bg3);position:relative;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;font-size:54px}
+.ev-list{display:flex;flex-direction:column;gap:9px}
+.ev-card{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;
+  cursor:pointer;transition:border-color .2s,transform .13s,box-shadow .2s;animation:fadeUp .3s ease both}
+.ev-card:active{transform:scale(.985)}
+.ev-card:hover{border-color:rgba(124,58,237,.4);box-shadow:0 4px 18px rgba(124,58,237,.1)}
+.ev-inner{display:flex}
+.ev-poster{width:88px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;
+  justify-content:center;font-size:34px;min-height:106px;position:relative;overflow:hidden}
 .ev-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ev-poster::after{content:'';position:absolute;bottom:0;left:0;right:0;height:70px;
-  background:linear-gradient(transparent,var(--bg2))}
 .ev-pe{position:relative;z-index:1}
-.ev-badge{position:absolute;top:10px;left:10px;z-index:2;
-  background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,.08);border-radius:8px;
-  padding:3px 9px;font-size:9px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.5px;color:var(--a2)}
-.ev-seats-badge{position:absolute;top:10px;right:10px;z-index:2;
-  background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,.08);border-radius:8px;
-  padding:3px 9px;font-size:9px;font-weight:700;color:#fff}
-.ev-seats-badge.low{border-color:rgba(239,68,68,.5);color:var(--red)}
-
-/* Тело карточки */
-.ev-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:0}
-.ev-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
-  color:var(--a2);margin-bottom:5px}
-.ev-title{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;
-  line-height:1.3;margin-bottom:8px}
-.ev-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.ev-tag{display:flex;align-items:center;gap:4px;background:var(--bg3);
-  border-radius:8px;padding:4px 9px;font-size:11px;color:var(--muted)}
-.ev-foot{display:flex;align-items:center;justify-content:space-between}
-.ev-price{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:var(--green)}
-.ev-price small{font-family:'Manrope',sans-serif;font-size:10px;font-weight:500;color:var(--muted)}
-.ev-btn{background:linear-gradient(135deg,var(--accent),var(--a2));border:none;
-  border-radius:12px;padding:8px 18px;font-family:'Unbounded',sans-serif;
-  font-size:10px;font-weight:700;color:#fff;cursor:pointer;
-  transition:all .15s;box-shadow:0 4px 14px rgba(124,58,237,.35)}
-.ev-btn:active{transform:scale(.93)}
-
-/* Скелетон */
-.ev-skel-img{width:100%;height:155px;border-radius:0}
+.ev-body{flex:1;padding:11px;display:flex;flex-direction:column;gap:4px}
+.ev-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--a2)}
+.ev-title{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;line-height:1.3}
+.ev-meta{font-size:10px;color:var(--muted)}
+.ev-foot{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
+.ev-price{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;color:var(--green)}
 .seat-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--bg4);color:var(--muted)}
 .seat-tag.low{color:var(--red);background:rgba(239,68,68,.1)}
 
@@ -465,6 +437,55 @@ textarea.fi{resize:vertical;min-height:70px}
 .empty-ico{font-size:48px;animation:bounce 2s ease-in-out infinite}
 .divider{height:1px;background:var(--bdr);margin:12px 0}
 .tag-hot{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--gold);color:#000;margin-left:5px}
+
+/* ── КНОПКИ ШАПКИ ── */
+.hdr-btns{display:flex;align-items:center;gap:7px}
+.hdr-icon-btn{width:36px;height:36px;border-radius:12px;background:var(--bg2);
+  border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;transition:all .15s;position:relative;flex-shrink:0}
+.hdr-icon-btn:active{transform:scale(.88)}
+.hdr-cart-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;
+  border-radius:50%;background:var(--accent);border:2px solid var(--bg);display:none}
+.hdr-cart-dot.on{display:block}
+
+/* Язык */
+.lang-modal{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-end;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(10px);
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.lang-modal.on{opacity:1;pointer-events:all}
+.lang-box{background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--bdr);
+  width:100%;padding:20px 16px 36px;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.2,.64,1)}
+.lang-modal.on .lang-box{transform:translateY(0)}
+.lang-ttl{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;
+  text-align:center;margin-bottom:16px}
+.lang-opts{display:flex;flex-direction:column;gap:8px}
+.lang-opt{display:flex;align-items:center;gap:12px;background:var(--bg3);
+  border:1.5px solid var(--bdr);border-radius:14px;padding:13px 15px;
+  cursor:pointer;transition:all .15s}
+.lang-opt.on{border-color:var(--accent);background:rgba(124,58,237,.1)}
+.lang-opt:active{transform:scale(.97)}
+.lang-flag{font-size:22px}
+.lang-name{font-weight:700;font-size:14px;flex:1}
+.lang-check{color:var(--accent);font-size:16px;opacity:0}
+.lang-opt.on .lang-check{opacity:1}
+
+/* Избранное */
+.fav-btn{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);
+  border:1px solid var(--bdr);border-radius:12px;padding:8px 14px;
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--txt)}
+.fav-btn.on{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#ef4444}
+.fav-btn:active{transform:scale(.93)}
+
+/* Карта */
+.ev-map-wrap{margin:0 0 14px;border-radius:16px;overflow:hidden;
+  border:1px solid var(--bdr)}
+.ev-map-iframe{width:100%;height:195px;border:none;display:block}
+.ev-map-foot{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;background:var(--bg3)}
+.ev-map-lbl{font-size:12px;font-weight:600;color:var(--muted)}
+.ev-map-open{background:var(--accent);border:none;border-radius:10px;
+  padding:6px 13px;font-size:11px;font-weight:700;color:#fff;cursor:pointer}
 </style>
 </head>
 <body>
@@ -518,22 +539,23 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <!-- ══════════════ СОБЫТИЯ ══════════════ -->
 <div class="page hide" id="pgBuyer">
-  <div class="hdr" style="padding:14px 16px 0">
-    <div class="hdr-top" style="margin-bottom:10px">
+  <div class="hdr">
+    <div class="hdr-top">
       <div class="logo">🎟 TicketBot</div>
-      <div style="font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--bdr);
-        border-radius:9px;padding:4px 9px" id="evCityBadge">Ташкент</div>
+      <div class="hdr-btns">
+        <div class="hdr-icon-btn" onclick="APP.openFavoritesPage()" title="Избранное">❤️</div>
+        <div class="hdr-icon-btn" onclick="APP.tabNav('cart')" title="Корзина" style="position:relative">
+          🛒<span class="hdr-cart-dot" id="hdrCartDot"></span>
+        </div>
+        <div class="hdr-icon-btn" onclick="APP.openLangModal()" title="Язык">🌐</div>
+      </div>
     </div>
-    <div class="srch" style="margin-bottom:10px">
-      <span class="srch-ic">🔍</span>
-      <input type="text" id="searchInput" placeholder="Поиск событий..." oninput="APP.filterEvents()"
-        style="width:100%;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:14px;
-          padding:10px 14px 10px 36px;color:var(--txt);font-family:'Manrope',sans-serif;
-          font-size:13px;outline:none;transition:all .2s">
+    <div class="srch"><span class="srch-ic">🔍</span>
+      <input type="text" id="searchInput" placeholder="Поиск событий..." oninput="APP.filterEvents()">
     </div>
-    <div class="chips" id="chipsBar" style="padding-bottom:12px"></div>
+    <div class="chips" id="chipsBar"></div>
   </div>
-  <div class="scr" id="evList" style="padding:12px 12px calc(var(--tab-h) + 16px)"></div>
+  <div class="scr" id="evList"></div>
 </div>
 
 <!-- ══════════════ ДЕТАЛИ СОБЫТИЯ ══════════════ -->
@@ -551,6 +573,23 @@ textarea.fi{resize:vertical;min-height:70px}
       <div class="d-title" id="dTitle"></div>
       <div class="ig" id="dGrid"></div>
       <div class="d-desc" id="dDesc"></div>
+      <div style="margin-bottom:12px">
+        <button class="fav-btn" id="favToggleBtn" onclick="APP.toggleFavorite()">
+          <span id="favBtnIcon">🤍</span>
+          <span id="favBtnText">В избранное</span>
+        </button>
+      </div>
+      <div id="evMapSection" style="display:none">
+        <div class="sec" style="margin-bottom:8px">📍 На карте</div>
+        <div class="ev-map-wrap">
+          <iframe id="evMapFrame" class="ev-map-iframe" src="" loading="lazy"
+            allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div class="ev-map-foot">
+            <span class="ev-map-lbl" id="evMapLbl"></span>
+            <button class="ev-map-open" onclick="APP.openInMaps()">Открыть ↗</button>
+          </div>
+        </div>
+      </div>
       <div class="sec">🎫 Тип билета</div>
       <div class="tt-list" id="ttList"></div>
       <div class="qty-row">
@@ -656,6 +695,11 @@ if (TG) { TG.ready(); TG.expand(); TG.setHeaderColor?.('#080812'); TG.setBackgro
 const TG_USER_ID   = TG?.initDataUnsafe?.user?.id || null;
 const TG_INIT_DATA = TG?.initData || '';
 
+const I18N = {
+  ru:{addFav:'В избранное',removeFav:'Убрать из избранного',favEmpty:'Нет избранных событий',from:'от',free:'Бесплатно',buy:'Купить →'},
+  uz:{addFav:'Sevimliga',removeFav:'O\'chirish',favEmpty:'Sevimli tadbirlar yo\'q',from:'dan',free:'Bepul',buy:'Sotib olish →'},
+  en:{addFav:'Add to favorites',removeFav:'Remove',favEmpty:'No favorite events',from:'from',free:'Free',buy:'Buy →'},
+};
 const CAT = {all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"};
 
 const APP = (() => {
@@ -673,8 +717,11 @@ const APP = (() => {
     activeTab:     'events',
     currentSelTab: 'stats',
     buyerTab:      'tickets',
+    lang:          localStorage.getItem('tb_lang') || 'ru',
+    favIds:        new Set(JSON.parse(localStorage.getItem('tb_favids') || '[]')),
     _timerInterval: null,
   };
+  const _t = k => (I18N[state.lang]||I18N.ru)[k]||k;
 
   // Если корзина уже истекла при загрузке — очищаем
   if(state.cartExpireAt && Date.now() > state.cartExpireAt){
@@ -858,17 +905,10 @@ const APP = (() => {
     document.getElementById('evList').innerHTML =
       '<div class="ev-list">' + [1,2,3].map(i => `
         <div class="ev-card" style="animation-delay:${i*.08}s">
-          <div class="skel" style="width:100%;height:155px;border-radius:0"></div>
-          <div class="ev-body">
-            <div class="skel" style="height:8px;width:40%;margin-bottom:6px;border-radius:4px"></div>
-            <div class="skel" style="height:14px;width:75%;margin-bottom:8px;border-radius:4px"></div>
-            <div style="display:flex;gap:6px;margin-bottom:10px">
-              <div class="skel" style="height:24px;width:85px;border-radius:8px"></div>
-              <div class="skel" style="height:24px;width:95px;border-radius:8px"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div class="skel" style="height:16px;width:100px;border-radius:4px"></div>
-              <div class="skel" style="height:32px;width:80px;border-radius:12px"></div>
+          <div class="ev-inner">
+            <div class="ev-poster skel" style="min-height:106px;width:88px"></div>
+            <div class="ev-body" style="gap:8px">
+              ${[55,88,68,48].map(w => `<div class="skel" style="height:9px;width:${w}%"></div>`).join('')}
             </div>
           </div>
         </div>`).join('') + '</div>';
@@ -898,27 +938,24 @@ const APP = (() => {
       return;
     }
     el.innerHTML = '<div class="ev-list">' + list.map((ev, i) => {
-      const mp  = ev.ticket_types.length ? Math.min(...ev.ticket_types.map(t => t.price)) : 0;
+      const mp  = Math.min(...ev.ticket_types.map(t => t.price));
       const ta  = ev.ticket_types.reduce((s,t) => s + t.available, 0);
-      const low = ta > 0 && ta <= 20;
-      return `<div class="ev-card" style="animation-delay:${i*.06}s" onclick="APP.openEvent(${ev.id})">
-        <div class="ev-poster">
-          ${ev.poster_url
-            ? `<img src="${ev.poster_url}" loading="lazy">`
-            : `<span class="ev-pe">${ev.emoji||'🎡'}</span>`}
-          <div class="ev-badge">${CAT[ev.category]||ev.category}</div>
-          <div class="ev-seats-badge ${low?'low':''}">${low?'🔥 ':''}${ta} мест</div>
-        </div>
-        <div class="ev-body">
-          <div class="ev-title">${ev.title}</div>
-          <div class="ev-tags">
-            <div class="ev-tag">📅 ${ev.date}</div>
-            <div class="ev-tag">⏰ ${ev.time}</div>
-            <div class="ev-tag">📍 ${ev.venue}</div>
+      const low = ta <= 20;
+      return `<div class="ev-card" style="animation-delay:${i*.05}s" onclick="APP.openEvent(${ev.id})">
+        <div class="ev-inner">
+          <div class="ev-poster">
+            ${ev.poster_url ? `<img src="${ev.poster_url}" loading="lazy">` : ''}
+            <span class="ev-pe">${ev.emoji||'🎡'}</span>
           </div>
-          <div class="ev-foot">
-            <div class="ev-price">${mp>0?'от '+fmt(mp):'Бесплатно'} <small>сум</small></div>
-            <button class="ev-btn" onclick="event.stopPropagation();APP.openEvent(${ev.id})">Купить →</button>
+          <div class="ev-body">
+            <div class="ev-cat">${CAT[ev.category]||ev.category}</div>
+            <div class="ev-title">${ev.title}</div>
+            <div class="ev-meta">📅 ${ev.date} · ${ev.time}</div>
+            <div class="ev-meta">📍 ${ev.venue}, ${ev.city}</div>
+            <div class="ev-foot">
+              <div class="ev-price">от ${fmt(mp)}</div>
+              <div class="seat-tag ${low?'low':''}">${low?'🔥 ':''}${ta} мест</div>
+            </div>
           </div>
         </div>
       </div>`;
@@ -972,6 +1009,8 @@ const APP = (() => {
     }).join('');
 
     updateAddBtn(); haptic();
+    _updateFavBtn(ev.id);
+    _showMap(ev);
     goTo('pgDetail');
   }
 
@@ -1106,10 +1145,12 @@ const APP = (() => {
 
   function updateCartUI(){
     const tq = state.cart.reduce((s,i) => s + i.qty, 0);
-    const b  = document.getElementById('tabCartBadge');
-    const ct = document.getElementById('tab-cart');
-    if(b){  b.textContent = tq || ''; b.classList.toggle('on', tq > 0); }
-    if(ct){ ct.classList.toggle('has-items', tq > 0); }
+    const b   = document.getElementById('tabCartBadge');
+    const ct  = document.getElementById('tab-cart');
+    const dot = document.getElementById('hdrCartDot');
+    if(b)  { b.textContent = tq || ''; b.classList.toggle('on', tq > 0); }
+    if(ct) { ct.classList.toggle('has-items', tq > 0); }
+    if(dot){ dot.classList.toggle('on', tq > 0); }
     if(!tq && !state.cartExpireAt) _stopTimer();
   }
 
@@ -1549,8 +1590,8 @@ const APP = (() => {
       <input type="hidden" id="evId" value="">
       <div class="fld">
         <label class="fl">🖼 Баннер мероприятия</label>
-        <div class="img-upload" id="imgUploadBox">
-          <input type="file" id="imgFile" accept="image/*" onchange="APP.handleImageUpload(this)">
+        <div class="img-upload" id="imgUploadBox" onclick="document.getElementById('imgFile').click()">
+          <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="APP.handleImageUpload(this)">
           <div class="img-upload-ico">📸</div>
           <div class="img-upload-txt">Нажмите чтобы выбрать фото<br><span style="font-size:10px;opacity:.6">JPG, PNG до 5MB</span></div>
           <img class="img-preview" id="imgPreview" alt="preview">
@@ -1581,6 +1622,14 @@ const APP = (() => {
         <div class="fld"><label class="fl">Дата</label><input class="fi" type="date" id="evDate"></div>
       </div>
       <div class="fld"><label class="fl">Время</label><input class="fi" type="time" id="evTime" value="19:00"></div>
+      <div class="fld">
+        <label class="fl">📍 Ссылка на карту <span style="color:var(--muted);font-weight:400">(необязательно)</span></label>
+        <input class="fi" id="evMapUrl" placeholder="Вставьте ссылку из Google Maps или Яндекс Карт">
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5">
+          Google Maps: найдите место → нажмите «Поделиться» → скопируйте ссылку<br>
+          Yandex Maps: найдите место → нажмите «Поделиться» → скопируйте ссылку
+        </div>
+      </div>
       <div class="divider"></div>
       <div class="sec">🎫 Основной тип билета</div>
       <div class="fld"><label class="fl">Название типа</label><input class="fi" id="ttName" placeholder="Стандарт"></div>
@@ -1626,6 +1675,8 @@ const APP = (() => {
     const urlField = document.getElementById('evPosterUrl');
     let posterUrl = urlField?.value?.trim() || '';
     if(urlField?.dataset?.base64) posterUrl = urlField.dataset.base64;
+    const mapUrlRaw = g('evMapUrl') || '';
+    const _coords = _parseMapUrl(mapUrlRaw);
     const payload = {
       title, venue, city,
       description: g('evDesc'),
@@ -1635,6 +1686,8 @@ const APP = (() => {
       time:        g('evTime') || '19:00',
       emoji:       g('evEmoji') || '🎡',
       poster_url:  posterUrl,
+      latitude:    _coords ? _coords.lat : null,
+      longitude:   _coords ? _coords.lon : null,
       ticket_types:[{name:ttName, price:ttPrice, total:ttSeats, available:ttSeats}],
     };
     const btn = document.getElementById('submitEvBtn');
@@ -2064,12 +2117,126 @@ const APP = (() => {
     }
   }
 
+  // ══════════ ЯЗЫК ══════════════════════════════════
+  function openLangModal(){
+    haptic();
+    const cur = state.lang;
+    ['ru','uz','en'].forEach(l => {
+      document.getElementById('lopt-'+l)?.classList.toggle('on', l===cur);
+    });
+    document.getElementById('langModal').classList.add('on');
+  }
+  function closeLangModal(){ document.getElementById('langModal').classList.remove('on'); }
+  function setLang(l){
+    haptic(); state.lang = l;
+    localStorage.setItem('tb_lang', l);
+    closeLangModal();
+    showToast(l==='ru'?'🇷🇺 Русский':l==='uz'?"🇺🇿 O'zbek":'🇬🇧 English','ok');
+  }
+
+  // ══════════ ИЗБРАННОЕ ═════════════════════════════
+  function _updateFavBtn(evId){
+    const isFav = state.favIds.has(Number(evId));
+    const btn  = document.getElementById('favToggleBtn');
+    const icon = document.getElementById('favBtnIcon');
+    const txt  = document.getElementById('favBtnText');
+    if(btn) btn.classList.toggle('on', isFav);
+    if(icon) icon.textContent = isFav ? '❤️' : '🤍';
+    if(txt)  txt.textContent  = isFav ? _t('removeFav') : _t('addFav');
+  }
+  async function toggleFavorite(){
+    if(!TG_USER_ID){ showToast('❌ Войди через Telegram','err'); return; }
+    const ev = state.curEvent; if(!ev) return;
+    haptic();
+    const id = Number(ev.id);
+    const wasFav = state.favIds.has(id);
+    if(wasFav) state.favIds.delete(id); else state.favIds.add(id);
+    localStorage.setItem('tb_favids', JSON.stringify([...state.favIds]));
+    _updateFavBtn(id);
+    try {
+      await apiFetch('/api/favorites/'+id, {method:'POST'});
+      showToast(wasFav?'💔 Убрано из избранного':'❤️ Добавлено в избранное','ok');
+    } catch {
+      if(wasFav) state.favIds.add(id); else state.favIds.delete(id);
+      localStorage.setItem('tb_favids', JSON.stringify([...state.favIds]));
+      _updateFavBtn(id);
+    }
+  }
+  async function openFavoritesPage(){
+    haptic(); goTo('pgFavorites');
+    const c = document.getElementById('favList');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    try {
+      const r = await apiFetch('/api/favorites');
+      const favs = r.favorites || [];
+      state.favIds = new Set(r.ids || []);
+      localStorage.setItem('tb_favids', JSON.stringify([...state.favIds]));
+      if(!favs.length){
+        c.innerHTML = '<div class="empty"><div class="empty-ico">🤍</div><div>'+_t('favEmpty')+'</div></div>';
+        return;
+      }
+      c.innerHTML = '<div class="ev-list">'+favs.map((ev,i) => {
+        const mp = ev.ticket_types.length ? Math.min(...ev.ticket_types.map(t=>t.price)) : 0;
+        const ta = ev.ticket_types.reduce((s,t)=>s+t.available,0);
+        return '<div class="ev-card" style="animation-delay:'+(i*.06)+'s" onclick="APP.openEvent('+ev.id+')">'+
+          '<div class="ev-inner">'+
+          '<div class="ev-poster">'+(ev.poster_url?'<img src="'+ev.poster_url+'" loading="lazy">':'')+'<span class="ev-pe">'+(ev.emoji||'🎡')+'</span></div>'+
+          '<div class="ev-body">'+
+          '<div class="ev-cat">'+(CAT[ev.category]||ev.category)+'</div>'+
+          '<div class="ev-title">'+ev.title+'</div>'+
+          '<div class="ev-meta">📅 '+ev.date+' · '+ev.time+'</div>'+
+          '<div class="ev-meta">📍 '+ev.venue+', '+ev.city+'</div>'+
+          '<div class="ev-foot"><div class="ev-price">'+(mp>0?_t('from')+' '+fmt(mp):_t('free'))+'</div>'+
+          '<div class="seat-tag">'+ta+' мест</div></div>'+
+          '</div></div></div>';
+      }).join('')+'</div>';
+    } catch {
+      c.innerHTML = '<div class="empty"><div class="empty-ico">🤍</div><div>Ошибка загрузки</div></div>';
+    }
+  }
+  function closeFavoritesPage(){ haptic(); _setActiveTab('events'); goTo('pgBuyer'); }
+
+  // ══════════ КАРТА ══════════════════════════════════
+  function _parseMapUrl(url){
+    if(!url) return null;
+    let m;
+    m = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if(m) return {lat:parseFloat(m[1]),lon:parseFloat(m[2])};
+    m = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if(m) return {lat:parseFloat(m[1]),lon:parseFloat(m[2])};
+    m = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if(m) return {lat:parseFloat(m[2]),lon:parseFloat(m[1])};
+    return null;
+  }
+  function _showMap(ev){
+    const sec = document.getElementById('evMapSection'); if(!sec) return;
+    let lat = ev.latitude, lon = ev.longitude;
+    if(!lat || !lon){ sec.style.display='none'; return; }
+    lat = parseFloat(lat); lon = parseFloat(lon);
+    const d = 0.005;
+    const src = 'https://www.openstreetmap.org/export/embed.html?bbox='+(lon-d)+','+(lat-d)+','+(lon+d)+','+(lat+d)+'&layer=mapnik&marker='+lat+','+lon;
+    document.getElementById('evMapFrame').src = src;
+    const lbl = document.getElementById('evMapLbl');
+    if(lbl) lbl.textContent = ev.venue || '';
+    sec.style.display = 'block';
+    sec.dataset.lat = lat; sec.dataset.lon = lon;
+  }
+  function openInMaps(){
+    const sec = document.getElementById('evMapSection'); if(!sec) return;
+    const lat = sec.dataset.lat, lon = sec.dataset.lon;
+    if(lat && lon) window.open('https://maps.google.com/?q='+lat+','+lon,'_blank');
+  }
+
+
   return {
     chooseRole, switchRole, goTo, tabNav,
     filterEvents, setFilter,
     openEvent, selectTicket, changeQty, addToCart,
     openCart, closeCart, removeFromCart, cancelCart, pay, closeSuccess,
     buyerTab, openBuyerCabinet, openQrModal, closeQrModal,
+    openFavoritesPage, closeFavoritesPage, toggleFavorite,
+    openLangModal, closeLangModal, setLang,
+    openInMaps,
     sellerTab, renderStats, renderMyEvents, renderAddEvent, submitEvent,
     editEvent, deleteEvent,
     handleImageUpload, handlePosterUrl,
@@ -2117,5 +2284,40 @@ const DEMO_EVENTS = [
 
 APP.init();
 </script>
+
+<!-- Страница избранного -->
+<div class="page hide" id="pgFavorites" style="z-index:25">
+  <div class="hdr">
+    <div class="hdr-top">
+      <button onclick="APP.closeFavoritesPage()" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
+      <div class="logo">❤️ Избранное</div>
+    </div>
+  </div>
+  <div class="scr" id="favList"></div>
+</div>
+
+<!-- Модалка языка -->
+<div class="lang-modal" id="langModal" onclick="APP.closeLangModal()">
+  <div class="lang-box" onclick="event.stopPropagation()">
+    <div class="lang-ttl">🌐 Выберите язык</div>
+    <div class="lang-opts">
+      <div class="lang-opt on" id="lopt-ru" onclick="APP.setLang('ru')">
+        <span class="lang-flag">🇷🇺</span>
+        <span class="lang-name">Русский</span>
+        <span class="lang-check">✓</span>
+      </div>
+      <div class="lang-opt" id="lopt-uz" onclick="APP.setLang('uz')">
+        <span class="lang-flag">🇺🇿</span>
+        <span class="lang-name">O'zbek</span>
+        <span class="lang-check">✓</span>
+      </div>
+      <div class="lang-opt" id="lopt-en" onclick="APP.setLang('en')">
+        <span class="lang-flag">🇬🇧</span>
+        <span class="lang-name">English</span>
+        <span class="lang-check">✓</span>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
