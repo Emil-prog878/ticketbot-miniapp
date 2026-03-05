@@ -582,11 +582,16 @@ textarea.fi{resize:vertical;min-height:70px}
       <div id="evMapSection" style="display:none">
         <div class="sec" style="margin-bottom:8px">📍 На карте</div>
         <div class="ev-map-wrap">
-          <iframe id="evMapFrame" class="ev-map-iframe" src="" loading="lazy"
-            allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
-          <div class="ev-map-foot">
-            <span class="ev-map-lbl" id="evMapLbl"></span>
-            <button class="ev-map-open" onclick="APP.openInMaps()">Открыть ↗</button>
+          <div style="position:relative;border-radius:14px;overflow:hidden;cursor:pointer"
+            onclick="APP.openInMaps()">
+            <img id="evMapImg" src="" alt="map"
+              style="width:100%;height:180px;object-fit:cover;display:block">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+              <div style="background:rgba(0,0,0,.55);backdrop-filter:blur(4px);border-radius:12px;
+                padding:8px 16px;font-size:12px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.15)">
+                📍 <span id="evMapLbl"></span> — нажмите чтобы открыть карту
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -685,7 +690,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://elevation-uses-recordings-corresponding.trycloudflare.com",
+  API: "https://qld-frozen-brad-generating.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -696,9 +701,33 @@ const TG_USER_ID   = TG?.initDataUnsafe?.user?.id || null;
 const TG_INIT_DATA = TG?.initData || '';
 
 const I18N = {
-  ru:{addFav:'В избранное',removeFav:'Убрать из избранного',favEmpty:'Нет избранных событий',from:'от',free:'Бесплатно',buy:'Купить →'},
-  uz:{addFav:'Sevimliga',removeFav:'O\'chirish',favEmpty:'Sevimli tadbirlar yo\'q',from:'dan',free:'Bepul',buy:'Sotib olish →'},
-  en:{addFav:'Add to favorites',removeFav:'Remove',favEmpty:'No favorite events',from:'from',free:'Free',buy:'Buy →'},
+  ru:{
+    addFav:'В избранное', removeFav:'Убрать из избранного', favEmpty:'Нет избранных событий',
+    from:'от', free:'Бесплатно', buy:'Купить →',
+    events:'События', cart:'Корзина', cabinet:'Кабинет',
+    search:'Поиск событий...', allCat:'🌐 Все', seats:'мест',
+    ticketType:'🎫 Тип билета', qty:'Количество', selectTicket:'Выберите тип билета',
+    addCart:'В корзину', mapLabel:'На карте', openMap:'Открыть ↗',
+    favPage:'❤️ Избранное', back:'← Назад',
+  },
+  uz:{
+    addFav:'Sevimliga', removeFav:'Olib tashlash', favEmpty:"Sevimli tadbirlar yo'q",
+    from:'dan', free:'Bepul', buy:'Sotib olish →',
+    events:'Tadbirlar', cart:'Savat', cabinet:'Kabinet',
+    search:'Tadbirlarni qidirish...', allCat:'🌐 Hammasi', seats:'joy',
+    ticketType:'🎫 Chipta turi', qty:'Miqdori', selectTicket:'Chipta turini tanlang',
+    addCart:'Savatga', mapLabel:'Xaritada', openMap:'Ochish ↗',
+    favPage:'❤️ Sevimlilar', back:'← Orqaga',
+  },
+  en:{
+    addFav:'Add to favorites', removeFav:'Remove', favEmpty:'No favorite events',
+    from:'from', free:'Free', buy:'Buy →',
+    events:'Events', cart:'Cart', cabinet:'Cabinet',
+    search:'Search events...', allCat:'🌐 All', seats:'seats',
+    ticketType:'🎫 Ticket type', qty:'Quantity', selectTicket:'Select ticket type',
+    addCart:'Add to cart', mapLabel:'On map', openMap:'Open ↗',
+    favPage:'❤️ Favorites', back:'← Back',
+  },
 };
 const CAT = {all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"};
 
@@ -718,7 +747,7 @@ const APP = (() => {
     currentSelTab: 'stats',
     buyerTab:      'tickets',
     lang:          localStorage.getItem('tb_lang') || 'ru',
-    favIds:        new Set(JSON.parse(localStorage.getItem('tb_favids') || '[]')),
+    favIds:        new Set(),
     _timerInterval: null,
   };
   const _t = k => (I18N[state.lang]||I18N.ru)[k]||k;
@@ -895,8 +924,17 @@ const APP = (() => {
   // ── СОБЫТИЯ ───────────────────────────────────────
   async function loadEvents(){
     renderSkeletons();
-    try { const data = await apiFetch('/api/events'); state.events = data; }
-    catch { state.events = DEMO_EVENTS; }
+    try {
+      const data = await apiFetch('/api/events');
+      state.events = data;
+    } catch { state.events = DEMO_EVENTS; }
+    // Загружаем избранные ID с сервера
+    if(TG_USER_ID){
+      try {
+        const fr = await apiFetch('/api/favorites');
+        state.favIds = new Set((fr.ids || []).map(Number));
+      } catch {}
+    }
     renderChips();
     filterEvents();
   }
@@ -1590,12 +1628,12 @@ const APP = (() => {
       <input type="hidden" id="evId" value="">
       <div class="fld">
         <label class="fl">🖼 Баннер мероприятия</label>
-        <div class="img-upload" id="imgUploadBox" onclick="document.getElementById('imgFile').click()">
-          <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="APP.handleImageUpload(this)">
+        <label for="imgFile" class="img-upload" id="imgUploadBox" style="cursor:pointer;display:block">
+          <input type="file" id="imgFile" accept="image/*" style="position:absolute;opacity:0;width:0;height:0" onchange="APP.handleImageUpload(this)">
           <div class="img-upload-ico">📸</div>
           <div class="img-upload-txt">Нажмите чтобы выбрать фото<br><span style="font-size:10px;opacity:.6">JPG, PNG до 5MB</span></div>
           <img class="img-preview" id="imgPreview" alt="preview">
-        </div>
+        </label>
         <div class="img-upload-url">
           <label class="fl">Или вставьте URL картинки</label>
           <input class="fi" type="url" id="evPosterUrl" placeholder="https://example.com/image.jpg" oninput="APP.handlePosterUrl(this.value)">
@@ -2131,6 +2169,25 @@ const APP = (() => {
     haptic(); state.lang = l;
     localStorage.setItem('tb_lang', l);
     closeLangModal();
+    // Перерисовываем интерфейс
+    const si = document.getElementById('searchInput');
+    if(si) si.placeholder = _t('search');
+    // Обновляем таббар
+    const tabs = document.querySelectorAll('.tab-label');
+    const tabKeys = ['events','cart','cabinet'];
+    tabs.forEach((el,i) => { if(tabKeys[i]) el.textContent = _t(tabKeys[i]); });
+    // Кнопка добавить в корзину
+    const ab = document.getElementById('addBtn');
+    if(ab && ab.disabled) ab.textContent = _t('selectTicket');
+    // Секции в деталях
+    const secs = document.querySelectorAll('.sec');
+    secs.forEach(s => {
+      if(s.textContent.includes('Тип билета')||s.textContent.includes('Chipta')||s.textContent.includes('Ticket')) s.textContent = _t('ticketType');
+    });
+    // Чипы и список событий
+    if(state.events.length){ renderChips(); filterEvents(); }
+    // Кнопка избранного
+    if(state.curEvent) _updateFavBtn(state.curEvent.id);
     showToast(l==='ru'?'🇷🇺 Русский':l==='uz'?"🇺🇿 O'zbek":'🇬🇧 English','ok');
   }
 
@@ -2213,9 +2270,23 @@ const APP = (() => {
     let lat = ev.latitude, lon = ev.longitude;
     if(!lat || !lon){ sec.style.display='none'; return; }
     lat = parseFloat(lat); lon = parseFloat(lon);
-    const d = 0.005;
-    const src = 'https://www.openstreetmap.org/export/embed.html?bbox='+(lon-d)+','+(lat-d)+','+(lon+d)+','+(lat+d)+'&layer=mapnik&marker='+lat+','+lon;
-    document.getElementById('evMapFrame').src = src;
+    // Статичная карта через OpenStreetMap tiles (работает в Telegram WebView)
+    const zoom = 15;
+    const size = '640x300';
+    const mapImg = document.getElementById('evMapImg');
+    if(mapImg){
+      // Используем staticmap.openstreetmap.de
+      mapImg.src = 'https://staticmap.openstreetmap.de/staticmap.php?center='+lat+','+lon+'&zoom='+zoom+'&size='+size+'&markers='+lat+','+lon+',red-pushpin';
+      mapImg.onerror = function(){
+        // Fallback: показываем заглушку с координатами
+        this.style.display='none';
+        const wrap = this.parentElement;
+        wrap.style.background='var(--bg3)';
+        wrap.style.height='80px';
+        wrap.innerHTML='<div style="padding:16px;text-align:center;font-size:12px;color:var(--muted)">📍 '+lat.toFixed(4)+', '+lon.toFixed(4)+'<br><span style="color:var(--accent)">Нажмите чтобы открыть в Google Maps</span></div>';
+        wrap.onclick = () => window.open('https://maps.google.com/?q='+lat+','+lon,'_blank');
+      };
+    }
     const lbl = document.getElementById('evMapLbl');
     if(lbl) lbl.textContent = ev.venue || '';
     sec.style.display = 'block';
