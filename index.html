@@ -168,22 +168,50 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .rc:hover .rc-arr{transform:translateX(4px);color:var(--txt)}
 
 /* ── КАРТОЧКИ СОБЫТИЙ ── */
-.ev-list{display:flex;flex-direction:column;gap:9px}
-.ev-card{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;
-  cursor:pointer;transition:border-color .2s,transform .13s,box-shadow .2s;animation:fadeUp .3s ease both}
-.ev-card:active{transform:scale(.985)}
-.ev-card:hover{border-color:rgba(124,58,237,.4);box-shadow:0 4px 18px rgba(124,58,237,.1)}
-.ev-inner{display:flex}
-.ev-poster{width:88px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;
-  justify-content:center;font-size:34px;min-height:106px;position:relative;overflow:hidden}
+.ev-list{display:flex;flex-direction:column;gap:12px}
+.ev-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:20px;overflow:hidden;
+  cursor:pointer;transition:all .18s;animation:fadeUp .3s ease both}
+.ev-card:active{transform:scale(.982)}
+.ev-card:hover{border-color:rgba(124,58,237,.35);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+
+/* Постер — полная ширина сверху */
+.ev-poster{width:100%;height:155px;background:var(--bg3);position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;font-size:54px}
 .ev-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ev-poster::after{content:'';position:absolute;bottom:0;left:0;right:0;height:70px;
+  background:linear-gradient(transparent,var(--bg2))}
 .ev-pe{position:relative;z-index:1}
-.ev-body{flex:1;padding:11px;display:flex;flex-direction:column;gap:4px}
-.ev-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--a2)}
-.ev-title{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;line-height:1.3}
-.ev-meta{font-size:10px;color:var(--muted)}
-.ev-foot{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
-.ev-price{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;color:var(--green)}
+.ev-badge{position:absolute;top:10px;left:10px;z-index:2;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.08);border-radius:8px;
+  padding:3px 9px;font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--a2)}
+.ev-seats-badge{position:absolute;top:10px;right:10px;z-index:2;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.08);border-radius:8px;
+  padding:3px 9px;font-size:9px;font-weight:700;color:#fff}
+.ev-seats-badge.low{border-color:rgba(239,68,68,.5);color:var(--red)}
+
+/* Тело карточки */
+.ev-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:0}
+.ev-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
+  color:var(--a2);margin-bottom:5px}
+.ev-title{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:800;
+  line-height:1.3;margin-bottom:8px}
+.ev-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ev-tag{display:flex;align-items:center;gap:4px;background:var(--bg3);
+  border-radius:8px;padding:4px 9px;font-size:11px;color:var(--muted)}
+.ev-foot{display:flex;align-items:center;justify-content:space-between}
+.ev-price{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;color:var(--green)}
+.ev-price small{font-family:'Manrope',sans-serif;font-size:10px;font-weight:500;color:var(--muted)}
+.ev-btn{background:linear-gradient(135deg,var(--accent),var(--a2));border:none;
+  border-radius:12px;padding:8px 18px;font-family:'Unbounded',sans-serif;
+  font-size:10px;font-weight:700;color:#fff;cursor:pointer;
+  transition:all .15s;box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.ev-btn:active{transform:scale(.93)}
+
+/* Скелетон */
+.ev-skel-img{width:100%;height:155px;border-radius:0}
 .seat-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--bg4);color:var(--muted)}
 .seat-tag.low{color:var(--red);background:rgba(239,68,68,.1)}
 
@@ -490,16 +518,22 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <!-- ══════════════ СОБЫТИЯ ══════════════ -->
 <div class="page hide" id="pgBuyer">
-  <div class="hdr">
-    <div class="hdr-top">
+  <div class="hdr" style="padding:14px 16px 0">
+    <div class="hdr-top" style="margin-bottom:10px">
       <div class="logo">🎟 TicketBot</div>
+      <div style="font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--bdr);
+        border-radius:9px;padding:4px 9px" id="evCityBadge">Ташкент</div>
     </div>
-    <div class="srch"><span class="srch-ic">🔍</span>
-      <input type="text" id="searchInput" placeholder="Поиск событий..." oninput="APP.filterEvents()">
+    <div class="srch" style="margin-bottom:10px">
+      <span class="srch-ic">🔍</span>
+      <input type="text" id="searchInput" placeholder="Поиск событий..." oninput="APP.filterEvents()"
+        style="width:100%;background:var(--bg2);border:1.5px solid var(--bdr);border-radius:14px;
+          padding:10px 14px 10px 36px;color:var(--txt);font-family:'Manrope',sans-serif;
+          font-size:13px;outline:none;transition:all .2s">
     </div>
-    <div class="chips" id="chipsBar"></div>
+    <div class="chips" id="chipsBar" style="padding-bottom:12px"></div>
   </div>
-  <div class="scr" id="evList"></div>
+  <div class="scr" id="evList" style="padding:12px 12px calc(var(--tab-h) + 16px)"></div>
 </div>
 
 <!-- ══════════════ ДЕТАЛИ СОБЫТИЯ ══════════════ -->
@@ -824,10 +858,17 @@ const APP = (() => {
     document.getElementById('evList').innerHTML =
       '<div class="ev-list">' + [1,2,3].map(i => `
         <div class="ev-card" style="animation-delay:${i*.08}s">
-          <div class="ev-inner">
-            <div class="ev-poster skel" style="min-height:106px;width:88px"></div>
-            <div class="ev-body" style="gap:8px">
-              ${[55,88,68,48].map(w => `<div class="skel" style="height:9px;width:${w}%"></div>`).join('')}
+          <div class="skel" style="width:100%;height:155px;border-radius:0"></div>
+          <div class="ev-body">
+            <div class="skel" style="height:8px;width:40%;margin-bottom:6px;border-radius:4px"></div>
+            <div class="skel" style="height:14px;width:75%;margin-bottom:8px;border-radius:4px"></div>
+            <div style="display:flex;gap:6px;margin-bottom:10px">
+              <div class="skel" style="height:24px;width:85px;border-radius:8px"></div>
+              <div class="skel" style="height:24px;width:95px;border-radius:8px"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="skel" style="height:16px;width:100px;border-radius:4px"></div>
+              <div class="skel" style="height:32px;width:80px;border-radius:12px"></div>
             </div>
           </div>
         </div>`).join('') + '</div>';
@@ -857,24 +898,27 @@ const APP = (() => {
       return;
     }
     el.innerHTML = '<div class="ev-list">' + list.map((ev, i) => {
-      const mp  = Math.min(...ev.ticket_types.map(t => t.price));
+      const mp  = ev.ticket_types.length ? Math.min(...ev.ticket_types.map(t => t.price)) : 0;
       const ta  = ev.ticket_types.reduce((s,t) => s + t.available, 0);
-      const low = ta <= 20;
-      return `<div class="ev-card" style="animation-delay:${i*.05}s" onclick="APP.openEvent(${ev.id})">
-        <div class="ev-inner">
-          <div class="ev-poster">
-            ${ev.poster_url ? `<img src="${ev.poster_url}" loading="lazy">` : ''}
-            <span class="ev-pe">${ev.emoji||'🎡'}</span>
+      const low = ta > 0 && ta <= 20;
+      return `<div class="ev-card" style="animation-delay:${i*.06}s" onclick="APP.openEvent(${ev.id})">
+        <div class="ev-poster">
+          ${ev.poster_url
+            ? `<img src="${ev.poster_url}" loading="lazy">`
+            : `<span class="ev-pe">${ev.emoji||'🎡'}</span>`}
+          <div class="ev-badge">${CAT[ev.category]||ev.category}</div>
+          <div class="ev-seats-badge ${low?'low':''}">${low?'🔥 ':''}${ta} мест</div>
+        </div>
+        <div class="ev-body">
+          <div class="ev-title">${ev.title}</div>
+          <div class="ev-tags">
+            <div class="ev-tag">📅 ${ev.date}</div>
+            <div class="ev-tag">⏰ ${ev.time}</div>
+            <div class="ev-tag">📍 ${ev.venue}</div>
           </div>
-          <div class="ev-body">
-            <div class="ev-cat">${CAT[ev.category]||ev.category}</div>
-            <div class="ev-title">${ev.title}</div>
-            <div class="ev-meta">📅 ${ev.date} · ${ev.time}</div>
-            <div class="ev-meta">📍 ${ev.venue}, ${ev.city}</div>
-            <div class="ev-foot">
-              <div class="ev-price">от ${fmt(mp)}</div>
-              <div class="seat-tag ${low?'low':''}">${low?'🔥 ':''}${ta} мест</div>
-            </div>
+          <div class="ev-foot">
+            <div class="ev-price">${mp>0?'от '+fmt(mp):'Бесплатно'} <small>сум</small></div>
+            <button class="ev-btn" onclick="event.stopPropagation();APP.openEvent(${ev.id})">Купить →</button>
           </div>
         </div>
       </div>`;
