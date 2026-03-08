@@ -306,7 +306,8 @@ textarea.fi{resize:vertical;min-height:70px}
 .img-upload{border:2px dashed var(--bdr);border-radius:14px;padding:18px;text-align:center;
   cursor:pointer;transition:border-color .2s;margin-bottom:11px;position:relative;overflow:hidden}
 .img-upload:hover{border-color:var(--accent)}
-.img-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-upload{position:relative}
+.img-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2}
 .img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:8px;display:none}
 .img-preview.on{display:block}
 .img-upload-ico{font-size:32px;margin-bottom:6px}
@@ -449,25 +450,21 @@ textarea.fi{resize:vertical;min-height:70px}
 .hdr-cart-dot.on{display:block}
 
 /* Язык */
-.lang-modal{position:fixed;inset:0;z-index:500;display:flex;align-items:flex-end;
-  background:rgba(0,0,0,.6);backdrop-filter:blur(10px);
-  opacity:0;pointer-events:none;transition:opacity .2s}
-.lang-modal.on{opacity:1;pointer-events:all}
-.lang-box{background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid var(--bdr);
-  width:100%;padding:20px 16px 36px;
-  transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.2,.64,1)}
-.lang-modal.on .lang-box{transform:translateY(0)}
-.lang-ttl{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;
-  text-align:center;margin-bottom:16px}
-.lang-opts{display:flex;flex-direction:column;gap:8px}
-.lang-opt{display:flex;align-items:center;gap:12px;background:var(--bg3);
-  border:1.5px solid var(--bdr);border-radius:14px;padding:13px 15px;
-  cursor:pointer;transition:all .15s}
-.lang-opt.on{border-color:var(--accent);background:rgba(124,58,237,.1)}
-.lang-opt:active{transform:scale(.97)}
-.lang-flag{font-size:22px}
-.lang-name{font-weight:700;font-size:14px;flex:1}
-.lang-check{color:var(--accent);font-size:16px;opacity:0}
+/* ── ДРОПДАУН ЯЗЫКА ── */
+.lang-dropdown{position:absolute;top:calc(100% + 8px);right:0;z-index:600;
+  background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;
+  padding:6px;min-width:160px;
+  opacity:0;transform:translateY(-8px) scale(.96);pointer-events:none;
+  transition:opacity .18s ease,transform .18s ease;
+  box-shadow:0 8px 32px rgba(0,0,0,.45)}
+.lang-dropdown.on{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.lang-opt{display:flex;align-items:center;gap:9px;padding:9px 12px;
+  border-radius:10px;cursor:pointer;transition:background .12s;white-space:nowrap}
+.lang-opt:hover,.lang-opt:active{background:var(--bg3)}
+.lang-opt.on{background:rgba(124,58,237,.12)}
+.lang-flag{font-size:18px;line-height:1}
+.lang-name{font-size:13px;font-weight:600;flex:1;color:var(--txt)}
+.lang-check{font-size:12px;color:var(--accent);opacity:0}
 .lang-opt.on .lang-check{opacity:1}
 
 /* Избранное */
@@ -547,7 +544,26 @@ textarea.fi{resize:vertical;min-height:70px}
         <div class="hdr-icon-btn" onclick="APP.tabNav('cart')" title="Корзина" style="position:relative">
           🛒<span class="hdr-cart-dot" id="hdrCartDot"></span>
         </div>
-        <div class="hdr-icon-btn" onclick="APP.openLangModal()" title="Язык">🌐</div>
+        <div class="hdr-icon-btn" id="langBtn" onclick="APP.toggleLangDropdown()" title="Язык" style="position:relative">
+          🌐
+          <div class="lang-dropdown" id="langDropdown">
+            <div class="lang-opt on" id="lopt-ru" onclick="event.stopPropagation();APP.setLang('ru')">
+              <span class="lang-flag">🇷🇺</span>
+              <span class="lang-name">Русский</span>
+              <span class="lang-check">✓</span>
+            </div>
+            <div class="lang-opt" id="lopt-uz" onclick="event.stopPropagation();APP.setLang('uz')">
+              <span class="lang-flag">🇺🇿</span>
+              <span class="lang-name">O'zbek</span>
+              <span class="lang-check">✓</span>
+            </div>
+            <div class="lang-opt" id="lopt-en" onclick="event.stopPropagation();APP.setLang('en')">
+              <span class="lang-flag">🇬🇧</span>
+              <span class="lang-name">English</span>
+              <span class="lang-check">✓</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="srch"><span class="srch-ic">🔍</span>
@@ -563,7 +579,7 @@ textarea.fi{resize:vertical;min-height:70px}
   <div class="d-hero" id="dHero">
     <button class="back-pill" id="detailBackBtn">
       <span class="back-pill-arrow">←</span>
-      <span>Назад</span>
+      <span id="detailBackLabel">Назад</span>
     </button>
     <span class="d-he" id="dEmoji"></span>
   </div>
@@ -581,24 +597,12 @@ textarea.fi{resize:vertical;min-height:70px}
       </div>
       <div id="evMapSection" style="display:none">
         <div class="sec" style="margin-bottom:8px">📍 На карте</div>
-        <div class="ev-map-wrap">
-          <div style="position:relative;border-radius:14px;overflow:hidden;cursor:pointer"
-            onclick="APP.openInMaps()">
-            <img id="evMapImg" src="" alt="map"
-              style="width:100%;height:180px;object-fit:cover;display:block">
-            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-              <div style="background:rgba(0,0,0,.55);backdrop-filter:blur(4px);border-radius:12px;
-                padding:8px 16px;font-size:12px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.15)">
-                📍 <span id="evMapLbl"></span> — нажмите чтобы открыть карту
-              </div>
-            </div>
-          </div>
-        </div>
+        <div id="evMapContainer" class="ev-map-wrap"></div>
       </div>
-      <div class="sec">🎫 Тип билета</div>
+      <div class="sec" id="secTicketType">🎫 Тип билета</div>
       <div class="tt-list" id="ttList"></div>
       <div class="qty-row">
-        <span class="qty-lbl">Количество</span>
+        <span class="qty-lbl" id="qtyLabel">Количество</span>
         <div class="qty-ctrl">
           <button class="qty-btn" onclick="APP.changeQty(-1)">−</button>
           <span class="qty-n" id="qtyNum">1</span>
@@ -690,7 +694,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://qld-frozen-brad-generating.trycloudflare.com",
+  API: "https://large-fixed-develops-series.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -702,31 +706,46 @@ const TG_INIT_DATA = TG?.initData || '';
 
 const I18N = {
   ru:{
-    addFav:'В избранное', removeFav:'Убрать из избранного', favEmpty:'Нет избранных событий',
-    from:'от', free:'Бесплатно', buy:'Купить →',
-    events:'События', cart:'Корзина', cabinet:'Кабинет',
-    search:'Поиск событий...', allCat:'🌐 Все', seats:'мест',
-    ticketType:'🎫 Тип билета', qty:'Количество', selectTicket:'Выберите тип билета',
-    addCart:'В корзину', mapLabel:'На карте', openMap:'Открыть ↗',
-    favPage:'❤️ Избранное', back:'← Назад',
+    addFav:"В избранное", removeFav:"Убрать из избранного", favEmpty:"Нет избранных событий",
+    from:"от", free:"Бесплатно", buy:"Купить →",
+    events:"События", cart:"Корзина", cabinet:"Кабинет",
+    search:"Поиск событий...", allCat:"🌐 Все", seats:"мест",
+    ticketType:"🎫 Тип билета", qty:"Количество", selectTicket:"Выберите тип билета",
+    addCart:"В корзину", mapLabel:"На карте", openMap:"Открыть ↗",
+    favPage:"❤️ Избранное", back:"← Назад",
+    pay:"💳 Оплатить", cartEmpty:"Корзина пуста", noSeats:"Нет мест",
+    active:"Активен", used:"Использован",
+    dateLabel:"📅 Дата", timeLabel:"🕐 Время", venueLabel:"📍 Место", ageLabel:"🔞 Возраст",
+    searchEmpty:"Ничего не найдено", openMaps:"Открыть в Google Maps ↗",
+    low:"Мало мест",
   },
   uz:{
-    addFav:'Sevimliga', removeFav:'Olib tashlash', favEmpty:"Sevimli tadbirlar yo'q",
-    from:'dan', free:'Bepul', buy:'Sotib olish →',
-    events:'Tadbirlar', cart:'Savat', cabinet:'Kabinet',
-    search:'Tadbirlarni qidirish...', allCat:'🌐 Hammasi', seats:'joy',
-    ticketType:'🎫 Chipta turi', qty:'Miqdori', selectTicket:'Chipta turini tanlang',
-    addCart:'Savatga', mapLabel:'Xaritada', openMap:'Ochish ↗',
-    favPage:'❤️ Sevimlilar', back:'← Orqaga',
+    addFav:"Sevimliga", removeFav:"Olib tashlash", favEmpty:"Sevimli tadbirlar yo`q",
+    from:"dan", free:"Bepul", buy:"Sotib olish",
+    events:"Tadbirlar", cart:"Savat", cabinet:"Kabinet",
+    search:"Tadbirlarni qidirish...", allCat:"🌐 Hammasi", seats:"joy",
+    ticketType:"🎫 Chipta turi", qty:"Miqdori", selectTicket:"Chipta turini tanlang",
+    addCart:"Savatga", mapLabel:"Xaritada", openMap:"Ochish",
+    favPage:"❤️ Sevimlilar", back:"Orqaga",
+    pay:"💳 To`lash", cartEmpty:"Savat bo`sh", noSeats:"Joy yo`q",
+    active:"Faol", used:"Ishlatilgan",
+    dateLabel:"📅 Sana", timeLabel:"🕐 Vaqt", venueLabel:"📍 Joy", ageLabel:"🔞 Yosh",
+    searchEmpty:"Hech narsa topilmadi", openMaps:"Google Maps da ochish",
+    low:"Kam joy",
   },
   en:{
-    addFav:'Add to favorites', removeFav:'Remove', favEmpty:'No favorite events',
-    from:'from', free:'Free', buy:'Buy →',
-    events:'Events', cart:'Cart', cabinet:'Cabinet',
-    search:'Search events...', allCat:'🌐 All', seats:'seats',
-    ticketType:'🎫 Ticket type', qty:'Quantity', selectTicket:'Select ticket type',
-    addCart:'Add to cart', mapLabel:'On map', openMap:'Open ↗',
-    favPage:'❤️ Favorites', back:'← Back',
+    addFav:"Add to favorites", removeFav:"Remove", favEmpty:"No favorite events",
+    from:"from", free:"Free", buy:"Buy",
+    events:"Events", cart:"Cart", cabinet:"Cabinet",
+    search:"Search events...", allCat:"🌐 All", seats:"seats",
+    ticketType:"🎫 Ticket type", qty:"Quantity", selectTicket:"Select ticket type",
+    addCart:"Add to cart", mapLabel:"On map", openMap:"Open",
+    favPage:"❤️ Favorites", back:"Back",
+    pay:"💳 Pay", cartEmpty:"Cart is empty", noSeats:"No seats",
+    active:"Active", used:"Used",
+    dateLabel:"📅 Date", timeLabel:"🕐 Time", venueLabel:"📍 Venue", ageLabel:"🔞 Age",
+    searchEmpty:"Nothing found", openMaps:"Open in Google Maps",
+    low:"Few seats",
   },
 };
 const CAT = {all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"};
@@ -972,7 +991,7 @@ const APP = (() => {
   function renderEvents(list){
     const el = document.getElementById('evList');
     if(!list.length){
-      el.innerHTML = '<div class="empty"><div class="empty-ico">🔍</div><div>Ничего не найдено</div></div>';
+      el.innerHTML = '<div class="empty"><div class="empty-ico">🔍</div><div>'+_t('searchEmpty')+'</div></div>';
       return;
     }
     el.innerHTML = '<div class="ev-list">' + list.map((ev, i) => {
@@ -991,8 +1010,8 @@ const APP = (() => {
             <div class="ev-meta">📅 ${ev.date} · ${ev.time}</div>
             <div class="ev-meta">📍 ${ev.venue}, ${ev.city}</div>
             <div class="ev-foot">
-              <div class="ev-price">от ${fmt(mp)}</div>
-              <div class="seat-tag ${low?'low':''}">${low?'🔥 ':''}${ta} мест</div>
+              <div class="ev-price">${_t('from')} ${fmt(mp)}</div>
+              <div class="seat-tag ${low?'low':''}">${low?'🔥 ':''}${ta} ${_t('seats')}</div>
             </div>
           </div>
         </div>
@@ -1026,10 +1045,10 @@ const APP = (() => {
     else dd.style.display='none';
 
     document.getElementById('dGrid').innerHTML = `
-      <div class="ib"><div class="ibl">📅 Дата</div><div class="ibv">${ev.date}</div></div>
-      <div class="ib"><div class="ibl">🕐 Время</div><div class="ibv">${ev.time}</div></div>
-      <div class="ib"><div class="ibl">📍 Место</div><div class="ibv">${ev.venue}</div></div>
-      <div class="ib"><div class="ibl">🔞 Возраст</div><div class="ibv">${ev.age_rating}</div></div>`;
+      <div class="ib"><div class="ibl">${_t('dateLabel')}</div><div class="ibv">${ev.date}</div></div>
+      <div class="ib"><div class="ibl">${_t('timeLabel')}</div><div class="ibv">${ev.time}</div></div>
+      <div class="ib"><div class="ibl">${_t('venueLabel')}</div><div class="ibv">${ev.venue}</div></div>
+      <div class="ib"><div class="ibl">${_t('ageLabel')}</div><div class="ibv">${ev.age_rating}</div></div>`;
 
     document.getElementById('ttList').innerHTML = ev.ticket_types.map(tt => {
       const so  = tt.available === 0;
@@ -1037,7 +1056,7 @@ const APP = (() => {
       return `<div class="tt-card ${so?'soldout':''}" id="tt_${tt.id}" onclick="${so ? '' : `APP.selectTicket(${tt.id})`}">
         <div>
           <div class="tt-nm">${tt.name}${low?'<span class="tag-hot">Мало</span>':''}</div>
-          <div class="tt-av ${low?'low':''}">${so ? 'Нет мест' : `${tt.available}/${tt.total} мест`}</div>
+          <div class="tt-av ${low?'low':''}">${so ? _t('noSeats') : `${tt.available}/${tt.total} ${_t('seats')}`}</div>
         </div>
         <div style="display:flex;align-items:center">
           <div class="tt-pr">${fmt(tt.price)}</div>
@@ -1079,9 +1098,9 @@ const APP = (() => {
   function updateAddBtn(){
     const b = document.getElementById('addBtn'); if(!b) return;
     if(!state.curTicketType){
-      b.textContent = 'Выберите тип билета'; b.disabled = true;
+      b.textContent = _t('selectTicket'); b.disabled = true;
     } else {
-      b.textContent = `🛒 В корзину — ${fmt(state.curTicketType.price * state.qty)}`; b.disabled = false;
+      b.textContent = `🛒 ${_t('addCart')} — ${fmt(state.curTicketType.price * state.qty)}`; b.disabled = false;
     }
   }
 
@@ -1213,13 +1232,13 @@ const APP = (() => {
     if(!c) return;
 
     if(!state.cart.length){
-      if(pb){ pb.disabled = true; pb.textContent = 'Корзина пуста'; }
+      if(pb){ pb.disabled = true; pb.textContent = _t('cartEmpty'); }
       if(cb) cb.style.display = 'none';
-      c.innerHTML = '<div class="empty"><div class="empty-ico">🛒</div><div>Корзина пуста</div></div>';
+      c.innerHTML = '<div class="empty"><div class="empty-ico">🛒</div><div>'+_t('cartEmpty')+'</div></div>';
       return;
     }
 
-    if(pb){ pb.disabled = false; pb.textContent = '💳 Оплатить'; }
+    if(pb){ pb.disabled = false; pb.textContent = _t('pay'); }
     if(cb) cb.style.display = '';
 
     const tot = state.cart.reduce((s,i) => s + i.price * i.qty, 0);
@@ -1290,7 +1309,7 @@ const APP = (() => {
       if(TG){ try{ TG.sendData(JSON.stringify({action:'order', items:state.cart, user_id:TG_USER_ID})); ok=true; }catch{} }
     }
     if(!ok){
-      btn.disabled = false; btn.textContent = '💳 Оплатить';
+      btn.disabled = false; btn.textContent = _t('pay');
       showToast('❌ Ошибка соединения, попробуйте ещё раз', 'err');
       return;
     }
@@ -1369,8 +1388,8 @@ const APP = (() => {
       return tickets.map((t, qi) => {
         const isUsed = t.status === 'used';
         const statusHtml = isUsed
-          ? `<span class="order-status cancelled">Использован</span>`
-          : `<span class="order-status paid">Активен</span>`;
+          ? `<span class="order-status cancelled">${_t('used')}</span>`
+          : `<span class="order-status paid">${_t('active')}</span>`;
         return `
         <div class="order-card" style="margin:${oi===0&&ii===0&&qi===0?'12px':0} 12px 10px;animation-delay:${(oi+ii+qi)*.06}s;
           ${isUsed ? 'opacity:0.6' : ''}">
@@ -1383,7 +1402,7 @@ const APP = (() => {
           </div>
           <div class="order-body">
             <div class="order-meta">📍 ${item.venue || '—'} &nbsp;·&nbsp; 🎫 ${item.ticket_type}</div>
-            ${isUsed ? `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">✅ Использован: ${t.used_at || '—'}</div>` : `
+            ${isUsed ? `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">✅ ${_t('used')}: ${t.used_at || '—'}</div>` : `
             <div class="qr-ticket">
               <div class="qr-img-wrap">
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(t.qr)}" alt="QR">
@@ -1628,8 +1647,8 @@ const APP = (() => {
       <input type="hidden" id="evId" value="">
       <div class="fld">
         <label class="fl">🖼 Баннер мероприятия</label>
-        <label for="imgFile" class="img-upload" id="imgUploadBox" style="cursor:pointer;display:block">
-          <input type="file" id="imgFile" accept="image/*" style="position:absolute;opacity:0;width:0;height:0" onchange="APP.handleImageUpload(this)">
+        <label for="imgFile" class="img-upload" id="imgUploadBox">
+          <input type="file" id="imgFile" accept="image/*" onchange="APP.handleImageUpload(this)">
           <div class="img-upload-ico">📸</div>
           <div class="img-upload-txt">Нажмите чтобы выбрать фото<br><span style="font-size:10px;opacity:.6">JPG, PNG до 5MB</span></div>
           <img class="img-preview" id="imgPreview" alt="preview">
@@ -2156,39 +2175,77 @@ const APP = (() => {
   }
 
   // ══════════ ЯЗЫК ══════════════════════════════════
-  function openLangModal(){
+  function toggleLangDropdown(){
     haptic();
+    const dd = document.getElementById('langDropdown');
+    if(!dd) return;
+    const isOpen = dd.classList.contains('on');
+    if(isOpen){ dd.classList.remove('on'); return; }
+    // Обновляем галочки
     const cur = state.lang;
     ['ru','uz','en'].forEach(l => {
       document.getElementById('lopt-'+l)?.classList.toggle('on', l===cur);
     });
-    document.getElementById('langModal').classList.add('on');
+    dd.classList.add('on');
+    // Закрываем по клику вне
+    setTimeout(() => {
+      const close = e => { dd.classList.remove('on'); document.removeEventListener('click', close); };
+      document.addEventListener('click', close);
+    }, 50);
   }
-  function closeLangModal(){ document.getElementById('langModal').classList.remove('on'); }
+  function openLangModal(){ toggleLangDropdown(); }
+  function closeLangModal(){ document.getElementById('langDropdown')?.classList.remove('on'); }
   function setLang(l){
     haptic(); state.lang = l;
     localStorage.setItem('tb_lang', l);
     closeLangModal();
-    // Перерисовываем интерфейс
+
+    // 1. Галочки дропдауна
+    ['ru','uz','en'].forEach(lang => {
+      document.getElementById('lopt-'+lang)?.classList.toggle('on', lang===l);
+    });
+
+    // 2. Поиск
     const si = document.getElementById('searchInput');
     if(si) si.placeholder = _t('search');
-    // Обновляем таббар
-    const tabs = document.querySelectorAll('.tab-label');
-    const tabKeys = ['events','cart','cabinet'];
-    tabs.forEach((el,i) => { if(tabKeys[i]) el.textContent = _t(tabKeys[i]); });
-    // Кнопка добавить в корзину
-    const ab = document.getElementById('addBtn');
-    if(ab && ab.disabled) ab.textContent = _t('selectTicket');
-    // Секции в деталях
-    const secs = document.querySelectorAll('.sec');
-    secs.forEach(s => {
-      if(s.textContent.includes('Тип билета')||s.textContent.includes('Chipta')||s.textContent.includes('Ticket')) s.textContent = _t('ticketType');
+
+    // 3. Таббар
+    [['tab-events','events'],['tab-cart','cart'],['tab-cabinet','cabinet']].forEach(([id,k])=>{
+      const el = document.querySelector('#'+id+' .tab-label');
+      if(el) el.textContent = _t(k);
     });
-    // Чипы и список событий
-    if(state.events.length){ renderChips(); filterEvents(); }
-    // Кнопка избранного
+
+    // 4. Статичные элементы деталей события
+    const _set = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
+    _set('secTicketType', _t('ticketType'));
+    _set('qtyLabel',      _t('qty'));
+    _set('detailBackLabel', _t('back').replace('← ',''));
+    _set('favPageTitle',  _t('favPage'));
+    _set('favBackBtn',    _t('back'));
+
+    // 5. Кнопка "добавить в корзину"
+    const ab = document.getElementById('addBtn');
+    if(ab){
+      if(ab.disabled) ab.textContent = _t('selectTicket');
+      else if(state.curTicketType)
+        ab.textContent = '🛒 '+_t('addCart')+' — '+fmt(state.curTicketType.price*state.qty);
+    }
+
+    // 6. Кнопка оплатить в корзине
+    const pb = document.getElementById('payBtn');
+    if(pb) pb.textContent = pb.disabled ? _t('cartEmpty') : _t('pay');
+
+    // 7. Кнопка в деталях события — "Купить"
+    if(state.curEvent){ renderChips(); filterEvents(); }
+    else if(state.events.length){ renderChips(); filterEvents(); }
+
+    // 8. Кнопка избранного
     if(state.curEvent) _updateFavBtn(state.curEvent.id);
-    showToast(l==='ru'?'🇷🇺 Русский':l==='uz'?"🇺🇿 O'zbek":'🇬🇧 English','ok');
+
+    // 9. Карточки корзины если открыта
+    if(state.activeTab === 'cart') renderCartContent();
+
+    showToast(l==='ru'?'🇷🇺 Русский':l==='uz'?'🇺🇿 O`zbek':'🇬🇧 English','ok');
   }
 
   // ══════════ ИЗБРАННОЕ ═════════════════════════════
@@ -2244,7 +2301,7 @@ const APP = (() => {
           '<div class="ev-meta">📅 '+ev.date+' · '+ev.time+'</div>'+
           '<div class="ev-meta">📍 '+ev.venue+', '+ev.city+'</div>'+
           '<div class="ev-foot"><div class="ev-price">'+(mp>0?_t('from')+' '+fmt(mp):_t('free'))+'</div>'+
-          '<div class="seat-tag">'+ta+' мест</div></div>'+
+          '<div class="seat-tag">'+ta+' '+_t('seats')+'</div></div>'+
           '</div></div></div>';
       }).join('')+'</div>';
     } catch {
@@ -2266,33 +2323,31 @@ const APP = (() => {
     return null;
   }
   function _showMap(ev){
-    const sec = document.getElementById('evMapSection'); if(!sec) return;
+    const sec = document.getElementById('evMapSection');
+    const con = document.getElementById('evMapContainer');
+    if(!sec || !con) return;
     let lat = ev.latitude, lon = ev.longitude;
     if(!lat || !lon){ sec.style.display='none'; return; }
     lat = parseFloat(lat); lon = parseFloat(lon);
-    // Статичная карта через OpenStreetMap tiles (работает в Telegram WebView)
-    const zoom = 15;
-    const size = '640x300';
-    const mapImg = document.getElementById('evMapImg');
-    if(mapImg){
-      // Используем staticmap.openstreetmap.de
-      mapImg.src = 'https://staticmap.openstreetmap.de/staticmap.php?center='+lat+','+lon+'&zoom='+zoom+'&size='+size+'&markers='+lat+','+lon+',red-pushpin';
-      mapImg.onerror = function(){
-        // Fallback: показываем заглушку с координатами
-        this.style.display='none';
-        const wrap = this.parentElement;
-        wrap.style.background='var(--bg3)';
-        wrap.style.height='80px';
-        wrap.innerHTML='<div style="padding:16px;text-align:center;font-size:12px;color:var(--muted)">📍 '+lat.toFixed(4)+', '+lon.toFixed(4)+'<br><span style="color:var(--accent)">Нажмите чтобы открыть в Google Maps</span></div>';
-        wrap.onclick = () => window.open('https://maps.google.com/?q='+lat+','+lon,'_blank');
-      };
-    }
-    const lbl = document.getElementById('evMapLbl');
-    if(lbl) lbl.textContent = ev.venue || '';
+    const venue = ev.venue || 'Место проведения';
+    const coords = lat.toFixed(5)+', '+lon.toFixed(5);
+    con.innerHTML = [
+      '<div onclick="APP.openInMaps()" style="display:flex;flex-direction:column;',
+      'align-items:center;justify-content:center;gap:10px;height:140px;',
+      'background:var(--bg3);border-radius:14px;cursor:pointer;border:1px solid var(--bdr)">',
+      '<div style="font-size:40px">🗺️</div>',
+      '<div style="font-size:13px;font-weight:700;color:var(--txt);text-align:center">'+venue+'</div>',
+      '<div style="font-size:10px;color:var(--muted)">'+coords+'</div>',
+      '<div style="background:var(--accent);color:#fff;border-radius:10px;',
+      'padding:7px 18px;font-size:12px;font-weight:700">📍 '+_t('openMaps')+'</div>',
+      '</div>',
+    ].join('');
     sec.style.display = 'block';
-    sec.dataset.lat = lat; sec.dataset.lon = lon;
+    sec.dataset.lat = lat;
+    sec.dataset.lon = lon;
   }
-  function openInMaps(){
+
+    function openInMaps(){
     const sec = document.getElementById('evMapSection'); if(!sec) return;
     const lat = sec.dataset.lat, lon = sec.dataset.lon;
     if(lat && lon) window.open('https://maps.google.com/?q='+lat+','+lon,'_blank');
@@ -2367,28 +2422,6 @@ APP.init();
   <div class="scr" id="favList"></div>
 </div>
 
-<!-- Модалка языка -->
-<div class="lang-modal" id="langModal" onclick="APP.closeLangModal()">
-  <div class="lang-box" onclick="event.stopPropagation()">
-    <div class="lang-ttl">🌐 Выберите язык</div>
-    <div class="lang-opts">
-      <div class="lang-opt on" id="lopt-ru" onclick="APP.setLang('ru')">
-        <span class="lang-flag">🇷🇺</span>
-        <span class="lang-name">Русский</span>
-        <span class="lang-check">✓</span>
-      </div>
-      <div class="lang-opt" id="lopt-uz" onclick="APP.setLang('uz')">
-        <span class="lang-flag">🇺🇿</span>
-        <span class="lang-name">O'zbek</span>
-        <span class="lang-check">✓</span>
-      </div>
-      <div class="lang-opt" id="lopt-en" onclick="APP.setLang('en')">
-        <span class="lang-flag">🇬🇧</span>
-        <span class="lang-name">English</span>
-        <span class="lang-check">✓</span>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- язык — дропдаун в кнопке шапки -->
 </body>
 </html>
