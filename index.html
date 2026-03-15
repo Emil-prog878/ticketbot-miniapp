@@ -122,7 +122,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .rpl-el{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);transform:scale(0);animation:rpl .55s linear;pointer-events:none}
 
 /* ── ХЕДЕР ── */
-.hdr{padding:10px 14px 8px;background:rgba(8,8,18,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);flex-shrink:0}
+.hdr{padding:10px 14px 8px;background:rgba(8,8,18,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);flex-shrink:0;position:relative;z-index:100}
 .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .logo{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;
   background:linear-gradient(135deg,var(--a2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -168,24 +168,67 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .rc:hover .rc-arr{transform:translateX(4px);color:var(--txt)}
 
 /* ── КАРТОЧКИ СОБЫТИЙ ── */
-.ev-list{display:flex;flex-direction:column;gap:9px}
-.ev-card{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;
-  cursor:pointer;transition:border-color .2s,transform .13s,box-shadow .2s;animation:fadeUp .3s ease both}
-.ev-card:active{transform:scale(.985)}
-.ev-card:hover{border-color:rgba(124,58,237,.4);box-shadow:0 4px 18px rgba(124,58,237,.1)}
-.ev-inner{display:flex}
-.ev-poster{width:88px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;
-  justify-content:center;font-size:34px;min-height:106px;position:relative;overflow:hidden}
-.ev-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ev-pe{position:relative;z-index:1}
-.ev-body{flex:1;padding:11px;display:flex;flex-direction:column;gap:4px}
-.ev-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--a2)}
-.ev-title{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:700;line-height:1.3}
-.ev-meta{font-size:10px;color:var(--muted)}
-.ev-foot{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
-.ev-price{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;color:var(--green)}
-.seat-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--bg4);color:var(--muted)}
+.ev-list{display:flex;flex-direction:column;gap:0}
+
+/* HERO — первая карточка */
+.ev-hero{border-radius:16px;overflow:hidden;cursor:pointer;
+  transition:transform .15s;animation:fadeUp .3s ease both;
+  background:var(--bg2);border:1px solid var(--bdr);margin-bottom:8px}
+.ev-hero:active{transform:scale(.985)}
+.ev-hero-img{width:100%;height:200px;position:relative;overflow:hidden;
+  background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:64px}
+.ev-hero-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ev-hero-grad{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 25%,rgba(8,8,18,.95) 100%)}
+.ev-hero-top{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start}
+.ev-hero-bottom{position:absolute;bottom:0;left:0;right:0;padding:14px}
+.ev-hero-title{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:800;
+  color:#fff;line-height:1.3;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.ev-hero-meta{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:10px}
+.ev-hero-foot{display:flex;align-items:center;justify-content:space-between}
+.ev-hero-price{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:800;color:var(--green)}
+.ev-hero-btn{background:var(--accent);color:#fff;border:none;border-radius:10px;
+  padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer}
+
+/* Бейджи */
+.ev-badge{background:rgba(8,8,18,.75);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.15);border-radius:8px;
+  padding:4px 9px;font-size:9px;font-weight:700;color:#fff;letter-spacing:.3px}
+.ev-badge.hot{background:rgba(239,68,68,.85);border-color:rgba(239,68,68,.5)}
+.ev-badge.soon{background:rgba(245,158,11,.8);border-color:rgba(245,158,11,.4)}
+
+/* Разделитель дат */
+.ev-sep{display:flex;align-items:center;gap:8px;padding:6px 0 8px}
+.ev-sep-line{flex:1;height:1px;background:var(--bdr)}
+.ev-sep-txt{font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+
+/* ROW карточки */
+.ev-row{display:flex;gap:0;background:var(--bg2);border-radius:14px;
+  overflow:hidden;cursor:pointer;border:1px solid var(--bdr);
+  transition:border-color .15s,transform .13s;animation:fadeUp .3s ease both;
+  margin-bottom:8px}
+.ev-row:active{transform:scale(.985)}
+.ev-row:last-child{margin-bottom:0}
+.ev-row-img{width:90px;flex-shrink:0;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  position:relative;overflow:hidden}
+.ev-row-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ev-row-body{flex:1;padding:10px 11px;display:flex;flex-direction:column;justify-content:space-between}
+.ev-row-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.ev-row-title{font-size:12px;font-weight:700;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ev-row-meta{font-size:10px;color:var(--muted);margin-top:3px}
+.ev-row-foot{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.ev-row-price{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:800;color:var(--green)}
+.ev-dot{width:7px;height:7px;border-radius:50%;background:var(--red);
+  box-shadow:0 0 0 2px rgba(239,68,68,.25);flex-shrink:0}
+.seat-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;
+  background:var(--bg3);color:var(--muted);display:flex;align-items:center;gap:4px}
 .seat-tag.low{color:var(--red);background:rgba(239,68,68,.1)}
+
+/* Цвета категорий */
+.cat-concert{color:#a78bfa}.cat-sport{color:var(--green)}.cat-theater{color:var(--gold)}
+.cat-exhibition{color:#60a5fa}.cat-festival{color:#ec4899}.cat-other{color:var(--muted)}
 
 /* ── ДЕТАЛИ СОБЫТИЯ ── */
 .d-hero{height:185px;background:var(--bg3);display:flex;align-items:center;justify-content:center;
@@ -356,6 +399,41 @@ textarea.fi{resize:vertical;min-height:70px}
   padding:13px 18px;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;
   cursor:pointer;flex:1;transition:all .15s;position:relative;overflow:hidden}
 .btn-cancel:active{transform:scale(.96);background:rgba(239,68,68,.1);color:var(--red);border-color:rgba(239,68,68,.3)}
+/* ── ФОРМА ВХОДА ОРГАНИЗАТОРА ── */
+.org-login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 24px;gap:16px;min-height:60vh}
+.org-login-ico{font-size:52px;margin-bottom:4px}
+.org-login-title{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:800;text-align:center}
+.org-login-sub{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-bottom:4px}
+.org-login-form{width:100%;display:flex;flex-direction:column;gap:10px}
+.org-login-err{font-size:11px;color:var(--red);text-align:center;padding:6px 0}
+
+/* ── КНОПКА АДМИНКИ ── */
+.admin-fab{position:fixed;right:16px;bottom:calc(var(--tab-h) + 16px);
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  display:none;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;z-index:200;
+  box-shadow:0 4px 16px rgba(245,158,11,.4);
+  border:2px solid rgba(255,255,255,.15)}
+.admin-fab.on{display:flex}
+.admin-fab:active{transform:scale(.9)}
+
+/* ── СТРАНИЦА АДМИНКИ ── */
+#pgAdmin{z-index:30}
+.adm-section{margin-bottom:20px}
+.adm-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;
+  padding:13px;margin-bottom:8px}
+.adm-card-title{font-size:12px;font-weight:700;margin-bottom:6px}
+.adm-card-sub{font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.adm-row{display:flex;align-items:center;gap:8px}
+.adm-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px}
+.adm-badge.active{background:rgba(16,185,129,.15);color:var(--green)}
+.adm-badge.inactive{background:rgba(239,68,68,.1);color:var(--red)}
+.adm-creds{background:var(--bg3);border-radius:10px;padding:10px 12px;
+  font-family:monospace;font-size:12px;line-height:1.8;border:1px solid var(--bdr)}
+.adm-creds-copy{font-size:10px;color:var(--accent);cursor:pointer;margin-top:4px}
+
 /* ── ПОКУПАТЕЛЬСКИЙ КАБИНЕТ ── */
 .bc-header{padding:20px 16px 12px;background:linear-gradient(160deg,rgba(124,58,237,.15) 0%,transparent 60%)}
 .bc-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--a2));
@@ -451,7 +529,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 /* Язык */
 /* ── ДРОПДАУН ЯЗЫКА ── */
-.lang-dropdown{position:absolute;top:calc(100% + 8px);right:0;z-index:600;
+.lang-dropdown{position:absolute;top:calc(100% + 8px);right:0;z-index:999;
   background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;
   padding:6px;min-width:160px;
   opacity:0;transform:translateY(-8px) scale(.96);pointer-events:none;
@@ -526,7 +604,7 @@ textarea.fi{resize:vertical;min-height:70px}
       <div><div class="rc-title">Я покупатель</div><div class="rc-desc">Ищу события и покупаю билеты</div></div>
       <span class="rc-arr">→</span>
     </div>
-    <div class="rc seller" style="animation:fadeUp .35s .2s ease both" onclick="APP.chooseRole('seller')">
+    <div class="rc seller" style="animation:fadeUp .35s .2s ease both" onclick="APP.openOrgLogin()">
       <span class="rc-ico">🏪</span>
       <div><div class="rc-title">Я организатор</div><div class="rc-desc">Создаю события и продаю билеты</div></div>
       <span class="rc-arr">→</span>
@@ -694,7 +772,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://large-fixed-develops-series.trycloudflare.com",
+  API: "https://expires-message-office-sen.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -702,6 +780,7 @@ const CFG = {
 const TG = window.Telegram?.WebApp || null;
 if (TG) { TG.ready(); TG.expand(); TG.setHeaderColor?.('#080812'); TG.setBackgroundColor?.('#080812'); }
 const TG_USER_ID   = TG?.initDataUnsafe?.user?.id || null;
+const ADMIN_IDS_JS = [712970014]; // твой Telegram ID — совпадает с ADMIN_IDS в .env
 const TG_INIT_DATA = TG?.initData || '';
 
 const I18N = {
@@ -717,7 +796,7 @@ const I18N = {
     active:"Активен", used:"Использован",
     dateLabel:"📅 Дата", timeLabel:"🕐 Время", venueLabel:"📍 Место", ageLabel:"🔞 Возраст",
     searchEmpty:"Ничего не найдено", openMaps:"Открыть в Google Maps ↗",
-    low:"Мало мест",
+    low:"Мало мест", soldOut:"Распродано",
   },
   uz:{
     addFav:"Sevimliga", removeFav:"Olib tashlash", favEmpty:"Sevimli tadbirlar yo`q",
@@ -731,7 +810,7 @@ const I18N = {
     active:"Faol", used:"Ishlatilgan",
     dateLabel:"📅 Sana", timeLabel:"🕐 Vaqt", venueLabel:"📍 Joy", ageLabel:"🔞 Yosh",
     searchEmpty:"Hech narsa topilmadi", openMaps:"Google Maps da ochish",
-    low:"Kam joy",
+    low:"Kam joy", soldOut:"Sotildi",
   },
   en:{
     addFav:"Add to favorites", removeFav:"Remove", favEmpty:"No favorite events",
@@ -745,7 +824,7 @@ const I18N = {
     active:"Active", used:"Used",
     dateLabel:"📅 Date", timeLabel:"🕐 Time", venueLabel:"📍 Venue", ageLabel:"🔞 Age",
     searchEmpty:"Nothing found", openMaps:"Open in Google Maps",
-    low:"Few seats",
+    low:"Few seats", soldOut:"Sold out",
   },
 };
 const CAT = {all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"};
@@ -766,6 +845,9 @@ const APP = (() => {
     currentSelTab: 'stats',
     buyerTab:      'tickets',
     lang:          localStorage.getItem('tb_lang') || 'ru',
+    orgLogin:      localStorage.getItem('tb_org_login') || null,
+    orgName:       localStorage.getItem('tb_org_name')  || null,
+    adminTab:      'pending',
     favIds:        new Set(),
     _timerInterval: null,
   };
@@ -933,6 +1015,7 @@ const APP = (() => {
       'Content-Type': 'application/json',
       'X-User-Id':    TG_USER_ID || '',
       'X-Init-Data':  TG_INIT_DATA,
+      'X-Org-Login':  state?.orgLogin || '',
       ...(options.headers || {})
     };
     const resp = await fetch(CFG.API + path, { ...options, headers });
@@ -960,15 +1043,26 @@ const APP = (() => {
 
   function renderSkeletons(){
     document.getElementById('evList').innerHTML =
-      '<div class="ev-list">' + [1,2,3].map(i => `
-        <div class="ev-card" style="animation-delay:${i*.08}s">
-          <div class="ev-inner">
-            <div class="ev-poster skel" style="min-height:106px;width:88px"></div>
-            <div class="ev-body" style="gap:8px">
-              ${[55,88,68,48].map(w => `<div class="skel" style="height:9px;width:${w}%"></div>`).join('')}
-            </div>
+      '<div class="ev-list">' +
+      `<div class="ev-hero" style="pointer-events:none">
+        <div class="skel" style="height:200px;border-radius:0"></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:8px">
+          <div class="skel" style="height:14px;width:75%;border-radius:6px"></div>
+          <div class="skel" style="height:10px;width:50%;border-radius:5px"></div>
+          <div class="skel" style="height:10px;width:35%;border-radius:5px"></div>
+        </div>
+      </div>` +
+      [1,2,3].map(i => `
+        <div class="ev-row" style="pointer-events:none;animation-delay:${i*.07}s">
+          <div class="skel" style="width:90px;min-height:90px"></div>
+          <div class="ev-row-body" style="gap:7px">
+            <div class="skel" style="height:9px;width:45%;border-radius:5px"></div>
+            <div class="skel" style="height:11px;width:85%;border-radius:5px"></div>
+            <div class="skel" style="height:9px;width:60%;border-radius:5px"></div>
+            <div class="skel" style="height:9px;width:35%;border-radius:5px;margin-top:3px"></div>
           </div>
-        </div>`).join('') + '</div>';
+        </div>`).join('') +
+      '</div>';
   }
 
   function renderChips(){
@@ -994,29 +1088,66 @@ const APP = (() => {
       el.innerHTML = '<div class="empty"><div class="empty-ico">🔍</div><div>'+_t('searchEmpty')+'</div></div>';
       return;
     }
-    el.innerHTML = '<div class="ev-list">' + list.map((ev, i) => {
-      const mp  = Math.min(...ev.ticket_types.map(t => t.price));
-      const ta  = ev.ticket_types.reduce((s,t) => s + t.available, 0);
-      const low = ta <= 20;
-      return `<div class="ev-card" style="animation-delay:${i*.05}s" onclick="APP.openEvent(${ev.id})">
-        <div class="ev-inner">
-          <div class="ev-poster">
-            ${ev.poster_url ? `<img src="${ev.poster_url}" loading="lazy">` : ''}
-            <span class="ev-pe">${ev.emoji||'🎡'}</span>
-          </div>
-          <div class="ev-body">
-            <div class="ev-cat">${CAT[ev.category]||ev.category}</div>
-            <div class="ev-title">${ev.title}</div>
-            <div class="ev-meta">📅 ${ev.date} · ${ev.time}</div>
-            <div class="ev-meta">📍 ${ev.venue}, ${ev.city}</div>
-            <div class="ev-foot">
-              <div class="ev-price">${_t('from')} ${fmt(mp)}</div>
-              <div class="seat-tag ${low?'low':''}">${low?'🔥 ':''}${ta} ${_t('seats')}</div>
+    const catColor = {concert:'cat-concert',sport:'cat-sport',theater:'cat-theater',
+      exhibition:'cat-exhibition',festival:'cat-festival',other:'cat-other'};
+    const parts = [];
+    list.forEach((ev, i) => {
+      const hasT = ev.ticket_types && ev.ticket_types.length > 0;
+      const mp   = hasT ? Math.min(...ev.ticket_types.map(t => t.price)) : 0;
+      const ta   = hasT ? ev.ticket_types.reduce((s,t) => s + t.available, 0) : 0;
+      const low  = ta > 0 && ta <= 20;
+      const sold = ta === 0 && hasT;
+      const catCls = catColor[ev.category] || 'cat-other';
+      const catName = CAT[ev.category] || ev.category;
+      const priceStr = hasT ? _t('from')+' '+fmt(mp) : _t('free');
+      const poster = ev.poster_url ? `<img src="${ev.poster_url}" loading="lazy">` : '';
+      const emoji = ev.emoji || '🎡';
+
+      if(i === 0){
+        // ── HERO карточка
+        parts.push(`<div class="ev-hero" style="animation-delay:.03s" onclick="APP.openEvent(${ev.id})">
+          <div class="ev-hero-img">
+            ${poster || emoji}
+            <div class="ev-hero-grad"></div>
+            <div class="ev-hero-top">
+              <span class="ev-badge">${catName}</span>
+              ${low ? '<span class="ev-badge hot">🔥 '+_t('low')+'</span>' : ''}
+              ${sold ? '<span class="ev-badge hot">'+_t('soldOut')+'</span>' : ''}
+            </div>
+            <div class="ev-hero-bottom">
+              <div class="ev-hero-title">${ev.title}</div>
+              <div class="ev-hero-meta">📅 ${ev.date} · ${ev.time} &nbsp;·&nbsp; 📍 ${ev.venue}</div>
+              <div class="ev-hero-foot">
+                <div class="ev-hero-price">${priceStr}</div>
+                <button class="ev-hero-btn" onclick="event.stopPropagation();APP.openEvent(${ev.id})">${_t('buy')}</button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>`;
-    }).join('') + '</div>';
+        </div>`);
+        // Разделитель после hero
+        if(list.length > 1) parts.push(`<div class="ev-sep"><div class="ev-sep-line"></div><div class="ev-sep-txt">Скоро</div><div class="ev-sep-line"></div></div>`);
+      } else {
+        // ── ROW карточка
+        parts.push(`<div class="ev-row" style="animation-delay:${i*.06}s" onclick="APP.openEvent(${ev.id})">
+          <div class="ev-row-img">${poster || emoji}</div>
+          <div class="ev-row-body">
+            <div>
+              <div class="ev-row-cat ${catCls}">${catName}</div>
+              <div class="ev-row-title">${ev.title}</div>
+              <div class="ev-row-meta">📅 ${ev.date} · ${ev.time} &nbsp;·&nbsp; 📍 ${ev.venue}</div>
+            </div>
+            <div class="ev-row-foot">
+              <div class="ev-row-price">${priceStr}</div>
+              <div class="seat-tag ${low||sold?'low':''}">
+                ${low||sold ? '<span class="ev-dot"></span>' : ''}
+                ${sold ? _t('soldOut') : ta+' '+_t('seats')}
+              </div>
+            </div>
+          </div>
+        </div>`);
+      }
+    });
+    el.innerHTML = '<div class="ev-list">'+parts.join('')+'</div>';
   }
 
   // ── ДЕТАЛИ СОБЫТИЯ ────────────────────────────────
@@ -2354,12 +2485,219 @@ const APP = (() => {
   }
 
 
+  // ══════════ ВХОД ОРГАНИЗАТОРА ══════════════════════════
+  function openOrgLogin(){
+    haptic();
+    // Если уже залогинен — сразу в кабинет
+    if(state.orgLogin){
+      _enterSellerCabinet();
+      return;
+    }
+    goTo('pgOrgLogin');
+  }
+
+  async function submitOrgLogin(){
+    const login = document.getElementById('orgLoginInput')?.value?.trim();
+    const pass  = document.getElementById('orgPassInput')?.value?.trim();
+    const err   = document.getElementById('orgLoginErr');
+    const btn   = document.getElementById('orgLoginBtn');
+    if(!login || !pass){
+      if(err){ err.textContent='Заполните все поля'; err.classList.remove('hide'); }
+      return;
+    }
+    btn.disabled = true; btn.innerHTML = '<div class="ld"></div>';
+    try {
+      const res = await apiFetch('/api/org/login', {
+        method:'POST',
+        body: JSON.stringify({login, password: pass})
+      });
+      state.orgLogin = res.login;
+      state.orgName  = res.name || res.login;
+      localStorage.setItem('tb_org_login', res.login);
+      localStorage.setItem('tb_org_name',  res.name || res.login);
+      haptic('success');
+      _enterSellerCabinet();
+    } catch(e) {
+      if(err){ err.textContent = 'Неверный логин или пароль'; err.classList.remove('hide'); }
+      btn.disabled = false; btn.textContent = 'Войти →';
+    }
+  }
+
+  function _enterSellerCabinet(){
+    state.role = 'seller';
+    localStorage.setItem('tb_role','seller');
+    _showTabbar();
+    _setActiveTab('cabinet');
+    goTo('pgSeller');
+    sellerTab('stats');
+  }
+
+  function orgLogout(){
+    state.orgLogin = null; state.orgName = null;
+    localStorage.removeItem('tb_org_login');
+    localStorage.removeItem('tb_org_name');
+    localStorage.removeItem('tb_role');
+    state.role = '';
+    goTo('pgOnboard');
+    _hideTabbar();
+    showToast('👋 Вы вышли из кабинета','ok');
+  }
+
+  // ══════════ АДМИНКА ════════════════════════════════════
+  function _isAdmin(){ return TG_USER_ID && ADMIN_IDS_JS.includes(TG_USER_ID); }
+
+  function openAdmin(){
+    haptic();
+    goTo('pgAdmin');
+    admTab('pending');
+  }
+
+  function closeAdmin(){
+    haptic();
+    goTo(state.role === 'seller' ? 'pgSeller' : 'pgBuyer');
+  }
+
+  function admTab(tab){
+    state.adminTab = tab;
+    ['pending','orgs','gen'].forEach(t => {
+      document.getElementById('adm-tab-'+t)?.classList.toggle('on', t===tab);
+    });
+    const c = document.getElementById('admContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    if(tab === 'pending')  _admLoadPending(c);
+    if(tab === 'orgs')     _admLoadOrgs(c);
+    if(tab === 'gen')      _admShowGen(c);
+  }
+
+  async function _admLoadPending(c){
+    try {
+      const r = await apiFetch('/api/superadmin/pending_events');
+      const evs = r.events || [];
+      if(!evs.length){
+        c.innerHTML = '<div class="empty"><div class="empty-ico">✅</div><div>Нет событий на модерации</div></div>';
+        return;
+      }
+      c.innerHTML = evs.map(ev => `
+        <div class="adm-card">
+          <div class="adm-card-title">${ev.title}</div>
+          <div class="adm-card-sub">
+            📅 ${ev.date} · ${ev.time}<br>
+            📍 ${ev.venue}, ${ev.city}<br>
+            👤 Организатор: <b>${ev.org_login}</b><br>
+            🕐 Создано: ${ev.created_at}
+          </div>
+          ${ev.poster_url ? `<img src="${ev.poster_url}" style="width:100%;height:100px;object-fit:cover;border-radius:10px;margin-bottom:8px">` : ''}
+          <div class="adm-row">
+            <button class="btn bp bsm" style="flex:1;background:var(--green)" onclick="APP.admApprove(${ev.id})">✅ Одобрить</button>
+            <button class="btn bd bsm" style="flex:1" onclick="APP.admReject(${ev.id})">❌ Отклонить</button>
+          </div>
+        </div>`).join('');
+    } catch { c.innerHTML = '<div class="empty">Ошибка загрузки</div>'; }
+  }
+
+  async function admApprove(id){
+    haptic();
+    try {
+      await apiFetch('/api/superadmin/event/'+id+'/approve', {method:'POST'});
+      showToast('✅ Событие опубликовано','ok');
+      admTab('pending');
+    } catch { showToast('❌ Ошибка','err'); }
+  }
+
+  async function admReject(id){
+    haptic();
+    try {
+      await apiFetch('/api/superadmin/event/'+id+'/reject', {method:'POST'});
+      showToast('🗑 Событие отклонено','ok');
+      admTab('pending');
+    } catch { showToast('❌ Ошибка','err'); }
+  }
+
+  async function _admLoadOrgs(c){
+    try {
+      const r = await apiFetch('/api/superadmin/organizers');
+      const orgs = r.organizers || [];
+      if(!orgs.length){
+        c.innerHTML = '<div class="empty"><div class="empty-ico">👥</div><div>Нет организаторов</div></div>';
+        return;
+      }
+      c.innerHTML = orgs.map(o => `
+        <div class="adm-card">
+          <div class="adm-row" style="justify-content:space-between;margin-bottom:6px">
+            <div>
+              <div class="adm-card-title" style="margin-bottom:2px">${o.name || o.login}</div>
+              <div style="font-size:10px;color:var(--muted)">@${o.login} · ${o.created_at}</div>
+            </div>
+            <span class="adm-badge ${o.is_active?'active':'inactive'}">${o.is_active?'Активен':'Заблокирован'}</span>
+          </div>
+          <button class="btn bsm ${o.is_active?'bd':'bp'}" onclick="APP.admToggleOrg(${o.id})" style="width:100%">
+            ${o.is_active ? '🔒 Заблокировать' : '✅ Разблокировать'}
+          </button>
+        </div>`).join('');
+    } catch { c.innerHTML = '<div class="empty">Ошибка загрузки</div>'; }
+  }
+
+  async function admToggleOrg(id){
+    haptic();
+    try {
+      await apiFetch('/api/superadmin/organizer/'+id+'/toggle', {method:'POST'});
+      admTab('orgs');
+    } catch { showToast('❌ Ошибка','err'); }
+  }
+
+  function _admShowGen(c){
+    c.innerHTML = `
+      <div class="adm-card">
+        <div class="adm-card-title">🔑 Создать учётную запись организатора</div>
+        <div class="adm-card-sub">Введите название компании или организации. Логин и пароль будут сгенерированы автоматически.</div>
+        <input class="fi" id="admGenName" placeholder="Название организации (необязательно)" style="margin-bottom:10px">
+        <button class="btn bp" id="admGenBtn" onclick="APP.admGenOrg()">⚡ Сгенерировать</button>
+      </div>
+      <div id="admGenResult"></div>`;
+  }
+
+  async function admGenOrg(){
+    haptic();
+    const name = document.getElementById('admGenName')?.value?.trim() || '';
+    const btn = document.getElementById('admGenBtn');
+    btn.disabled = true; btn.innerHTML = '<div class="ld"></div>';
+    try {
+      const r = await apiFetch('/api/superadmin/organizer/generate', {
+        method:'POST', body: JSON.stringify({name})
+      });
+      const res = document.getElementById('admGenResult');
+      if(res){
+        res.innerHTML = `
+          <div class="adm-card" style="border-color:var(--green)">
+            <div class="adm-card-title">✅ Учётная запись создана</div>
+            <div class="adm-creds">
+              Логин: <b>${r.login}</b><br>
+              Пароль: <b>${r.password}</b><br>
+              ${name ? 'Название: '+name : ''}
+            </div>
+            <div class="adm-creds-copy" onclick="APP._copyOrgCreds('${r.login}','${r.password}','${name}')">
+              📋 Скопировать данные
+            </div>
+          </div>`;
+      }
+    } catch { showToast('❌ Ошибка','err'); }
+    btn.disabled = false; btn.textContent = '⚡ Сгенерировать ещё';
+  }
+
+  function _copyOrgCreds(login, pass, name){
+    const text = `🎪 Доступ в TicketBot\n\nЛогин: ${login}\nПароль: ${pass}${name?'\nОрганизация: '+name:''}`;
+    navigator.clipboard?.writeText(text).then(() => showToast('📋 Скопировано','ok'));
+  }
+
+
   return {
     chooseRole, switchRole, goTo, tabNav,
     filterEvents, setFilter,
     openEvent, selectTicket, changeQty, addToCart,
     openCart, closeCart, removeFromCart, cancelCart, pay, closeSuccess,
     buyerTab, openBuyerCabinet, openQrModal, closeQrModal,
+    openOrgLogin, submitOrgLogin, orgLogout,
+    openAdmin, closeAdmin, admTab, admApprove, admReject, admToggleOrg, admGenOrg, _copyOrgCreds,
     openFavoritesPage, closeFavoritesPage, toggleFavorite,
     toggleLangDropdown, openLangModal, closeLangModal, setLang,
     openInMaps,
@@ -2421,6 +2759,48 @@ APP.init();
   </div>
   <div class="scr" id="favList"></div>
 </div>
+
+<!-- Страница входа организатора -->
+<div class="page hide" id="pgOrgLogin" style="z-index:22">
+  <div class="hdr" style="padding:14px 16px 14px">
+    <div class="hdr-top">
+      <button onclick="APP.goTo('pgOnboard')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
+      <div class="logo">🎪 Организатор</div>
+    </div>
+  </div>
+  <div class="scr" style="padding-top:0">
+    <div class="org-login-wrap">
+      <div class="org-login-ico">🎪</div>
+      <div class="org-login-title">Кабинет организатора</div>
+      <div class="org-login-sub">Введите логин и пароль,<br>которые вы получили от администратора</div>
+      <div class="org-login-form">
+        <input class="fi" id="orgLoginInput" placeholder="Логин" autocomplete="username">
+        <input class="fi" id="orgPassInput" type="password" placeholder="Пароль" autocomplete="current-password">
+        <div class="org-login-err hide" id="orgLoginErr"></div>
+        <button class="btn bp" id="orgLoginBtn" onclick="APP.submitOrgLogin()">Войти →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Страница админки -->
+<div class="page hide" id="pgAdmin" style="z-index:30">
+  <div class="hdr" style="padding:14px 16px 14px">
+    <div class="hdr-top">
+      <button onclick="APP.closeAdmin()" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
+      <div class="logo">⚡ Админка</div>
+    </div>
+    <div class="s-tabs" style="margin-top:10px">
+      <div class="s-tab on" id="adm-tab-pending" onclick="APP.admTab('pending')">⏳ Модерация</div>
+      <div class="s-tab" id="adm-tab-orgs" onclick="APP.admTab('orgs')">👥 Организаторы</div>
+      <div class="s-tab" id="adm-tab-gen" onclick="APP.admTab('gen')">🔑 Выдать доступ</div>
+    </div>
+  </div>
+  <div class="scr" id="admContent" style="padding-top:12px"></div>
+</div>
+
+<!-- FAB кнопка админки -->
+<div class="admin-fab" id="adminFab" onclick="APP.openAdmin()">⚡</div>
 
 <!-- язык — дропдаун в кнопке шапки -->
 </body>
