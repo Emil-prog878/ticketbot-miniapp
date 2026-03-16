@@ -1099,16 +1099,15 @@ const APP = (() => {
   async function loadEvents(){
     renderSkeletons();
     try {
-      const data = await apiFetch('/api/events');
+      // Грузим события и избранное параллельно — быстрее
+      const promises = [apiFetch('/api/events')];
+      if(TG_USER_ID && state.favIds.size === 0){
+        promises.push(apiFetch('/api/favorites').catch(() => ({ids:[]})));
+      }
+      const [data, favData] = await Promise.all(promises);
       state.events = data;
+      if(favData) state.favIds = new Set((favData.ids || []).map(Number));
     } catch { state.events = DEMO_EVENTS; }
-    // Загружаем избранные ID с сервера
-    if(TG_USER_ID){
-      try {
-        const fr = await apiFetch('/api/favorites');
-        state.favIds = new Set((fr.ids || []).map(Number));
-      } catch {}
-    }
     renderChips();
     filterEvents();
   }
@@ -1771,7 +1770,7 @@ const APP = (() => {
     const c = document.getElementById('selContent');
     c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
     let evs = [];
-    try { evs = await apiFetch('/api/events'); } catch { evs = state.events; }
+    try { evs = await apiFetch('/api/admin/my_events'); } catch { evs = state.events.filter(e => !state.orgLogin || e.org_login === state.orgLogin); }
     if(!evs.length){
       c.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div>Нет событий</div></div>' +
         '<button class="btn bp" onclick="APP.sellerTab(\'add\')" style="margin:16px 0">➕ Добавить</button>';
@@ -2616,7 +2615,20 @@ const APP = (() => {
     }
   }
 
-  function _enterSellerCabinet(){
+  async function _enterSellerCabinet(){
+    // Проверяем не заблокирован ли организатор
+    try {
+      const r = await apiFetch('/api/org/check');
+      if(!r.active){
+        state.orgLogin = null; state.orgName = null;
+        localStorage.removeItem('tb_org_login');
+        localStorage.removeItem('tb_org_name');
+        localStorage.removeItem('tb_role');
+        goTo('pgOnboard');
+        showToast('🚫 Ваш аккаунт заблокирован администратором','err');
+        return;
+      }
+    } catch {}
     state.role = 'seller';
     localStorage.setItem('tb_role','seller');
     _showTabbar();
@@ -2672,14 +2684,43 @@ const APP = (() => {
       }
       c.innerHTML = evs.map(ev => `
         <div class="adm-card">
-          <div class="adm-card-title">${ev.title}</div>
-          <div class="adm-card-sub">
-            📅 ${ev.date} · ${ev.time}<br>
-            📍 ${ev.venue}, ${ev.city}<br>
-            👤 Организатор: <b>${ev.org_login}</b><br>
-            🕐 Создано: ${ev.created_at}
+          ${ev.poster_url ? `<img src="${ev.poster_url}" style="width:100%;height:140px;object-fit:cover;border-radius:10px;margin-bottom:10px">` : '<div style="background:var(--bg3);height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:10px">🎡</div>'}
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+            <div class="adm-card-title" style="flex:1">${ev.title}</div>
+            <span style="font-size:10px;background:var(--bg3);padding:3px 8px;border-radius:8px;margin-left:8px;flex-shrink:0">${ev.category}</span>
           </div>
-          ${ev.poster_url ? `<img src="${ev.poster_url}" style="width:100%;height:100px;object-fit:cover;border-radius:10px;margin-bottom:8px">` : ''}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+            <div style="background:var(--bg3);border-radius:8px;padding:7px 10px">
+              <div style="font-size:9px;color:var(--muted)">Дата и время</div>
+              <div style="font-size:11px;font-weight:700">📅 ${ev.date} · ${ev.time}</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:8px;padding:7px 10px">
+              <div style="font-size:9px;color:var(--muted)">Место</div>
+              <div style="font-size:11px;font-weight:700">📍 ${ev.venue}</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:8px;padding:7px 10px">
+              <div style="font-size:9px;color:var(--muted)">Город</div>
+              <div style="font-size:11px;font-weight:700">🏙 ${ev.city}</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:8px;padding:7px 10px">
+              <div style="font-size:9px;color:var(--muted)">Возраст</div>
+              <div style="font-size:11px;font-weight:700">🔞 ${ev.age_rating || '0+'}</div>
+            </div>
+          </div>
+          <div style="background:var(--bg3);border-radius:8px;padding:7px 10px;margin-bottom:10px">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:3px">Организатор</div>
+            <div style="font-size:11px;font-weight:700">👤 ${ev.org_login}</div>
+            <div style="font-size:10px;color:var(--muted)">Создано: ${ev.created_at}</div>
+          </div>
+          ${ev.ticket_types && ev.ticket_types.length ? `
+          <div style="margin-bottom:10px">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:5px">🎫 Типы билетов</div>
+            ${ev.ticket_types.map(tt => `
+              <div style="display:flex;justify-content:space-between;background:var(--bg3);border-radius:8px;padding:6px 10px;margin-bottom:4px">
+                <span style="font-size:11px">${tt.name}</span>
+                <span style="font-size:11px;font-weight:700;color:var(--green)">${fmt(tt.price)} · ${tt.total} мест</span>
+              </div>`).join('')}
+          </div>` : ''}
           <div class="adm-row">
             <button class="btn bp bsm" style="flex:1;background:var(--green)" onclick="APP.admApprove(${ev.id})">✅ Одобрить</button>
             <button class="btn bd bsm" style="flex:1" onclick="APP.admReject(${ev.id})">❌ Отклонить</button>
@@ -2715,7 +2756,7 @@ const APP = (() => {
         return;
       }
       c.innerHTML = orgs.map(o => `
-        <div class="adm-card">
+        <div class="adm-card" style="cursor:pointer" onclick="APP.admOrgDetail(${o.id})">
           <div class="adm-row" style="justify-content:space-between;margin-bottom:6px">
             <div>
               <div class="adm-card-title" style="margin-bottom:2px">${o.name || o.login}</div>
@@ -2723,10 +2764,87 @@ const APP = (() => {
             </div>
             <span class="adm-badge ${o.is_active?'active':'inactive'}">${o.is_active?'Активен':'Заблокирован'}</span>
           </div>
-          <button class="btn bsm ${o.is_active?'bd':'bp'}" onclick="APP.admToggleOrg(${o.id})" style="width:100%">
-            ${o.is_active ? '🔒 Заблокировать' : '✅ Разблокировать'}
-          </button>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+            <div style="background:var(--bg3);border-radius:8px;padding:6px 8px;text-align:center">
+              <div style="font-size:16px;font-weight:800">${o.events_total}</div>
+              <div style="font-size:9px;color:var(--muted)">событий</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:8px;padding:6px 8px;text-align:center">
+              <div style="font-size:16px;font-weight:800">${o.tickets_sold}</div>
+              <div style="font-size:9px;color:var(--muted)">билетов</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:8px;padding:6px 8px;text-align:center">
+              <div style="font-size:13px;font-weight:800;color:var(--green)">${fmt(o.revenue)}</div>
+              <div style="font-size:9px;color:var(--muted)">выручка</div>
+            </div>
+          </div>
+          ${o.events_pending > 0 ? '<div style="font-size:10px;color:var(--gold);margin-bottom:8px">⏳ '+o.events_pending+' событий на модерации</div>' : ''}
+          <div class="adm-row" style="gap:6px">
+            <button class="btn bsm ${o.is_active?'bd':'bp'}" onclick="event.stopPropagation();APP.admToggleOrg(${o.id})" style="flex:1">
+              ${o.is_active ? '🔒 Заблокировать' : '✅ Разблокировать'}
+            </button>
+            <button class="btn bs bsm" onclick="event.stopPropagation();APP.admOrgDetail(${o.id})" style="flex:1">
+              📋 Подробнее
+            </button>
+          </div>
         </div>`).join('');
+    } catch(e) { c.innerHTML = '<div class="empty">Ошибка загрузки</div>'; }
+  }
+
+  async function admOrgDetail(id){
+    haptic();
+    const c = document.getElementById('admContent');
+    c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
+    try {
+      const o = await apiFetch('/api/superadmin/organizer/'+id+'/detail');
+      c.innerHTML = `
+        <div class="adm-card" style="border-color:var(--accent)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div class="adm-card-title">${o.name || o.login}</div>
+              <div style="font-size:10px;color:var(--muted)">@${o.login} · Создан ${o.created_at}</div>
+            </div>
+            <span class="adm-badge ${o.is_active?'active':'inactive'}">${o.is_active?'Активен':'Заблокирован'}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:22px;font-weight:800">${o.total_events}</div>
+              <div style="font-size:10px;color:var(--muted)">событий</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:22px;font-weight:800">${o.total_sold}</div>
+              <div style="font-size:10px;color:var(--muted)">билетов</div>
+            </div>
+            <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center">
+              <div style="font-size:14px;font-weight:800;color:var(--green)">${fmt(o.total_revenue)}</div>
+              <div style="font-size:10px;color:var(--muted)">выручка</div>
+            </div>
+          </div>
+        </div>
+        <div class="sec">📅 События организатора</div>
+        ${o.events.length ? o.events.map(ev => `
+          <div class="adm-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+              <div class="adm-card-title" style="flex:1">${ev.title}</div>
+              <span class="adm-badge ${ev.is_approved?'active':'inactive'}" style="flex-shrink:0;margin-left:8px">${ev.is_approved?'✅ Опубл.':'⏳ Модерация'}</span>
+            </div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:8px">📅 ${ev.date} · 📍 ${ev.venue}, ${ev.city}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+              <div style="background:var(--bg3);border-radius:8px;padding:6px;text-align:center">
+                <div style="font-size:14px;font-weight:700">${ev.sold}/${ev.total}</div>
+                <div style="font-size:9px;color:var(--muted)">билетов</div>
+              </div>
+              <div style="background:var(--bg3);border-radius:8px;padding:6px;text-align:center">
+                <div style="font-size:12px;font-weight:700;color:var(--green)">${fmt(ev.revenue)}</div>
+                <div style="font-size:9px;color:var(--muted)">выручка</div>
+              </div>
+              <div style="background:var(--bg3);border-radius:8px;padding:6px;text-align:center">
+                <div style="font-size:14px;font-weight:700">${ev.total>0?Math.round(ev.sold/ev.total*100):0}%</div>
+                <div style="font-size:9px;color:var(--muted)">продано</div>
+              </div>
+            </div>
+          </div>`).join('') : '<div class="empty" style="padding:20px">Нет событий</div>'}
+        <button class="btn bs" onclick="APP.admTab('orgs')" style="width:100%;margin-top:8px">← Назад</button>`;
     } catch { c.innerHTML = '<div class="empty">Ошибка загрузки</div>'; }
   }
 
@@ -2807,7 +2925,7 @@ const APP = (() => {
     openCart, closeCart, removeFromCart, cancelCart, pay, closeSuccess,
     buyerTab, openBuyerCabinet, openQrModal, closeQrModal,
     openOrgLogin, submitOrgLogin, orgLogout,
-    openAdmin, closeAdmin, admTab, admApprove, admReject, admToggleOrg, admGenOrg, admCleanupUsers, _copyOrgCreds,
+    openAdmin, closeAdmin, admTab, admApprove, admReject, admToggleOrg, admOrgDetail, admGenOrg, admCleanupUsers, _copyOrgCreds,
     openFavoritesPage, closeFavoritesPage, toggleFavorite,
     toggleLangDropdown, openLangModal, closeLangModal, setLang,
     openInMaps,
