@@ -2278,10 +2278,15 @@ const APP = (() => {
   function init(){
     _initEvents();
     const saved = localStorage.getItem('tb_role');
-    if(saved){
-      state.role = saved;
+    // Восстанавливаем сессию организатора
+    if(saved === 'seller' && !state.orgLogin){
+      localStorage.removeItem('tb_role');
+    }
+    const role = localStorage.getItem('tb_role');
+    if(role){
+      state.role = role;
       _showTabbar();
-      if(saved === 'buyer'){
+      if(role === 'buyer'){
         _setActiveTab('events');
         loadEvents();
         goTo('pgBuyer');
@@ -2291,7 +2296,14 @@ const APP = (() => {
         sellerTab('stats');
       }
     } else {
+      loadEvents(); // грузим события в фоне для быстрого старта
       goTo('pgOnboard');
+    }
+
+    // FAB кнопка администратора — только для твоего TG ID
+    if(TG_USER_ID && ADMIN_IDS_JS.includes(Number(TG_USER_ID))){
+      const fab = document.getElementById('adminFab');
+      if(fab) fab.classList.add('on');
     }
 
     // Показываем локальную корзину сразу (мгновенно)
@@ -2336,9 +2348,10 @@ const APP = (() => {
       document.getElementById('lopt-'+lang)?.classList.toggle('on', lang===l);
     });
 
-    // 2. Поиск
-    const si = document.getElementById('searchInput');
-    if(si) si.placeholder = _t('search');
+    // 2. Поиск — обновляем все элементы поиска на странице
+    document.querySelectorAll('#searchInput').forEach(si => {
+      si.placeholder = _t('search');
+    });
 
     // 3. Таббар
     [['tab-events','events'],['tab-cart','cart'],['tab-cabinet','cabinet']].forEach(([id,k])=>{
@@ -2366,9 +2379,11 @@ const APP = (() => {
     const pb = document.getElementById('payBtn');
     if(pb) pb.textContent = pb.disabled ? _t('cartEmpty') : _t('pay');
 
-    // 7. Кнопка в деталях события — "Купить"
-    if(state.curEvent){ renderChips(); filterEvents(); }
-    else if(state.events.length){ renderChips(); filterEvents(); }
+    // 7. Перерисовываем события и чипы всегда
+    if(state.events.length){
+      renderChips();
+      filterEvents();
+    }
 
     // 8. Кнопка избранного
     if(state.curEvent) _updateFavBtn(state.curEvent.id);
@@ -2653,7 +2668,12 @@ const APP = (() => {
         <input class="fi" id="admGenName" placeholder="Название организации (необязательно)" style="margin-bottom:10px">
         <button class="btn bp" id="admGenBtn" onclick="APP.admGenOrg()">⚡ Сгенерировать</button>
       </div>
-      <div id="admGenResult"></div>`;
+      <div id="admGenResult"></div>
+      <div class="adm-card" style="margin-top:16px;border-color:var(--red)">
+        <div class="adm-card-title">🧹 Очистка тестовых аккаунтов</div>
+        <div class="adm-card-sub">Удалит всех пользователей кроме тебя (ID 712970014). Заказы и данные тестовых аккаунтов будут удалены.</div>
+        <button class="btn bd bsm" onclick="APP.admCleanupUsers()" style="width:100%">🗑 Удалить твинки</button>
+      </div>`;
   }
 
   async function admGenOrg(){
@@ -2697,7 +2717,7 @@ const APP = (() => {
     openCart, closeCart, removeFromCart, cancelCart, pay, closeSuccess,
     buyerTab, openBuyerCabinet, openQrModal, closeQrModal,
     openOrgLogin, submitOrgLogin, orgLogout,
-    openAdmin, closeAdmin, admTab, admApprove, admReject, admToggleOrg, admGenOrg, _copyOrgCreds,
+    openAdmin, closeAdmin, admTab, admApprove, admReject, admToggleOrg, admGenOrg, admCleanupUsers, _copyOrgCreds,
     openFavoritesPage, closeFavoritesPage, toggleFavorite,
     toggleLangDropdown, openLangModal, closeLangModal, setLang,
     openInMaps,
