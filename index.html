@@ -599,19 +599,18 @@ textarea.fi{resize:vertical;min-height:70px}
   <div class="ob-logo">TicketBot</div>
   <div class="ob-sub">Покупай и продавай билеты<br>на лучшие события в Telegram</div>
   <div class="role-cards">
-    <div class="rc buyer" style="animation:fadeUp .35s .1s ease both" onclick="APP.chooseRole('buyer')">
+    <div class="rc buyer" id="btnBuyer" style="animation:fadeUp .35s .1s ease both">
       <span class="rc-ico">🎫</span>
       <div><div class="rc-title">Я покупатель</div><div class="rc-desc">Ищу события и покупаю билеты</div></div>
       <span class="rc-arr">→</span>
     </div>
-    <div class="rc seller" style="animation:fadeUp .35s .2s ease both" onclick="APP.openOrgLogin()">
+    <div class="rc seller" id="btnSeller" style="animation:fadeUp .35s .2s ease both">
       <span class="rc-ico">🏪</span>
       <div><div class="rc-title">Я организатор</div><div class="rc-desc">Создаю события и продаю билеты</div></div>
       <span class="rc-arr">→</span>
     </div>
   </div>
-  <div style="margin-top:20px;font-size:10px;color:var(--muted);cursor:pointer"
-    onclick="localStorage.clear();location.reload()">↺ Сбросить кэш</div>
+  <div id="btnClearCache" style="margin-top:20px;font-size:10px;color:var(--muted);cursor:pointer">↺ Сбросить кэш</div>
 </div>
 
 <!-- ══════════════ СОБЫТИЯ ══════════════ -->
@@ -830,7 +829,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://expires-message-office-sen.trycloudflare.com",
+  API: "https://render-job-feeds-sharing.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -1058,6 +1057,12 @@ const APP = (() => {
 
   // ── ИНИЦИАЛИЗАЦИЯ КНОПКИ НАЗАД ────────────────────
   function _initEvents(){
+    // Кнопки онбординга
+    document.getElementById('btnBuyer')?.addEventListener('click', () => chooseRole('buyer'));
+    document.getElementById('btnSeller')?.addEventListener('click', () => openOrgLogin());
+    document.getElementById('btnClearCache')?.addEventListener('click', () => {
+      localStorage.clear(); location.reload();
+    });
     // Кнопка назад в деталях события
     document.getElementById('detailBackBtn')?.addEventListener('click', () => {
       haptic();
@@ -2783,6 +2788,18 @@ const APP = (() => {
   }
 
 
+  async function admCleanupUsers(){
+    haptic();
+    if(!confirm('Удалить всех пользователей кроме тебя? Это нельзя отменить.')) return;
+    try {
+      const r = await apiFetch('/api/superadmin/cleanup_users', {
+        method:'POST', body: JSON.stringify({keep_id: 712970014})
+      });
+      showToast('✅ Удалено '+r.deleted_users+' аккаунтов','ok');
+    } catch { showToast('❌ Ошибка','err'); }
+  }
+
+
   return {
     chooseRole, switchRole, goTo, tabNav,
     filterEvents, setFilter,
@@ -2839,7 +2856,10 @@ const DEMO_EVENTS = [
      {id:12,name:"Льготный",price:40000,available:100,total:200}]},
 ];
 
-document.addEventListener("DOMContentLoaded", () => APP.init());
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){ APP.init(); });
 </script>
 </body>
 </html>
