@@ -34,7 +34,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--txt);font
 .page{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:10;transition:opacity .22s ease,transform .22s ease}
 .page.hide{opacity:0;pointer-events:none;transform:translateX(18px)}
 #pgDetail{z-index:20}
-#pgOnboard{align-items:center;justify-content:center;padding:32px 22px;text-align:center;
+#pgOnboard{z-index:15;align-items:center;justify-content:center;padding:32px 22px;text-align:center;
   background:radial-gradient(ellipse at 50% -5%,rgba(124,58,237,.25) 0%,transparent 65%),var(--bg)}
 
 /* ── НИЖНИЙ ТАББАР ── */
@@ -610,6 +610,8 @@ textarea.fi{resize:vertical;min-height:70px}
       <span class="rc-arr">→</span>
     </div>
   </div>
+  <div style="margin-top:20px;font-size:10px;color:var(--muted);cursor:pointer"
+    onclick="localStorage.clear();location.reload()">↺ Сбросить кэш</div>
 </div>
 
 <!-- ══════════════ СОБЫТИЯ ══════════════ -->
@@ -769,6 +771,62 @@ textarea.fi{resize:vertical;min-height:70px}
   </div>
   <div class="scr" id="selContent"></div>
 </div>
+
+
+<!-- Страница избранного -->
+<div class="page hide" id="pgFavorites" style="z-index:25">
+  <div class="hdr">
+    <div class="hdr-top">
+      <button onclick="APP.closeFavoritesPage()" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
+      <div class="logo">❤️ Избранное</div>
+    </div>
+  </div>
+  <div class="scr" id="favList"></div>
+</div>
+
+<!-- Страница входа организатора -->
+<div class="page hide" id="pgOrgLogin" style="z-index:22">
+  <div class="hdr" style="padding:14px 16px 14px">
+    <div class="hdr-top">
+      <button onclick="APP.goTo('pgOnboard')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
+      <div class="logo">🎪 Организатор</div>
+    </div>
+  </div>
+  <div class="scr" style="padding-top:0">
+    <div class="org-login-wrap">
+      <div class="org-login-ico">🎪</div>
+      <div class="org-login-title">Кабинет организатора</div>
+      <div class="org-login-sub">Введите логин и пароль,<br>которые вы получили от администратора</div>
+      <div class="org-login-form">
+        <input class="fi" id="orgLoginInput" placeholder="Логин" autocomplete="username">
+        <input class="fi" id="orgPassInput" type="password" placeholder="Пароль" autocomplete="current-password">
+        <div class="org-login-err hide" id="orgLoginErr"></div>
+        <button class="btn bp" id="orgLoginBtn" onclick="APP.submitOrgLogin()">Войти →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Страница админки -->
+<div class="page hide" id="pgAdmin" style="z-index:30">
+  <div class="hdr" style="padding:14px 16px 14px">
+    <div class="hdr-top">
+      <button onclick="APP.closeAdmin()" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
+      <div class="logo">⚡ Админка</div>
+    </div>
+    <div class="s-tabs" style="margin-top:10px">
+      <div class="s-tab on" id="adm-tab-pending" onclick="APP.admTab('pending')">⏳ Модерация</div>
+      <div class="s-tab" id="adm-tab-orgs" onclick="APP.admTab('orgs')">👥 Организаторы</div>
+      <div class="s-tab" id="adm-tab-gen" onclick="APP.admTab('gen')">🔑 Выдать доступ</div>
+    </div>
+  </div>
+  <div class="scr" id="admContent" style="padding-top:12px"></div>
+</div>
+
+<!-- FAB кнопка админки -->
+<div class="admin-fab" id="adminFab" onclick="APP.openAdmin()">⚡</div>
+
+<!-- язык — дропдаун в кнопке шапки -->
 
 <script>
 const CFG = {
@@ -2277,26 +2335,31 @@ const APP = (() => {
   // ── INIT ──────────────────────────────────────────
   function init(){
     _initEvents();
-    const saved = localStorage.getItem('tb_role');
-    // Восстанавливаем сессию организатора
-    if(saved === 'seller' && !state.orgLogin){
+
+    // Сбрасываем зависшие состояния
+    const savedRole = localStorage.getItem('tb_role');
+    if(savedRole === 'seller' && !state.orgLogin){
+      // Организатор без логина — сброс
       localStorage.removeItem('tb_role');
     }
+
     const role = localStorage.getItem('tb_role');
-    if(role){
-      state.role = role;
+    loadEvents(); // всегда грузим события в фоне
+
+    if(role === 'buyer'){
+      state.role = 'buyer';
       _showTabbar();
-      if(role === 'buyer'){
-        _setActiveTab('events');
-        loadEvents();
-        goTo('pgBuyer');
-      } else {
-        _setActiveTab('cabinet');
-        goTo('pgSeller');
-        sellerTab('stats');
-      }
+      _setActiveTab('events');
+      goTo('pgBuyer');
+    } else if(role === 'seller' && state.orgLogin){
+      state.role = 'seller';
+      _showTabbar();
+      _setActiveTab('cabinet');
+      goTo('pgSeller');
+      sellerTab('stats');
     } else {
-      loadEvents(); // грузим события в фоне для быстрого старта
+      // Всегда показываем онбординг если нет чёткой роли
+      localStorage.removeItem('tb_role');
       goTo('pgOnboard');
     }
 
@@ -2766,62 +2829,7 @@ const DEMO_EVENTS = [
      {id:12,name:"Льготный",price:40000,available:100,total:200}]},
 ];
 
-APP.init();
+document.addEventListener("DOMContentLoaded", () => APP.init());
 </script>
-
-<!-- Страница избранного -->
-<div class="page hide" id="pgFavorites" style="z-index:25">
-  <div class="hdr">
-    <div class="hdr-top">
-      <button onclick="APP.closeFavoritesPage()" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
-      <div class="logo">❤️ Избранное</div>
-    </div>
-  </div>
-  <div class="scr" id="favList"></div>
-</div>
-
-<!-- Страница входа организатора -->
-<div class="page hide" id="pgOrgLogin" style="z-index:22">
-  <div class="hdr" style="padding:14px 16px 14px">
-    <div class="hdr-top">
-      <button onclick="APP.goTo('pgOnboard')" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
-      <div class="logo">🎪 Организатор</div>
-    </div>
-  </div>
-  <div class="scr" style="padding-top:0">
-    <div class="org-login-wrap">
-      <div class="org-login-ico">🎪</div>
-      <div class="org-login-title">Кабинет организатора</div>
-      <div class="org-login-sub">Введите логин и пароль,<br>которые вы получили от администратора</div>
-      <div class="org-login-form">
-        <input class="fi" id="orgLoginInput" placeholder="Логин" autocomplete="username">
-        <input class="fi" id="orgPassInput" type="password" placeholder="Пароль" autocomplete="current-password">
-        <div class="org-login-err hide" id="orgLoginErr"></div>
-        <button class="btn bp" id="orgLoginBtn" onclick="APP.submitOrgLogin()">Войти →</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Страница админки -->
-<div class="page hide" id="pgAdmin" style="z-index:30">
-  <div class="hdr" style="padding:14px 16px 14px">
-    <div class="hdr-top">
-      <button onclick="APP.closeAdmin()" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;color:var(--txt);cursor:pointer;font-size:13px">← Назад</button>
-      <div class="logo">⚡ Админка</div>
-    </div>
-    <div class="s-tabs" style="margin-top:10px">
-      <div class="s-tab on" id="adm-tab-pending" onclick="APP.admTab('pending')">⏳ Модерация</div>
-      <div class="s-tab" id="adm-tab-orgs" onclick="APP.admTab('orgs')">👥 Организаторы</div>
-      <div class="s-tab" id="adm-tab-gen" onclick="APP.admTab('gen')">🔑 Выдать доступ</div>
-    </div>
-  </div>
-  <div class="scr" id="admContent" style="padding-top:12px"></div>
-</div>
-
-<!-- FAB кнопка админки -->
-<div class="admin-fab" id="adminFab" onclick="APP.openAdmin()">⚡</div>
-
-<!-- язык — дропдаун в кнопке шапки -->
 </body>
 </html>
