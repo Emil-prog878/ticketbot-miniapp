@@ -829,7 +829,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://charges-closing-accessory-metric.trycloudflare.com",
+  API: "https://judges-vendor-invitations-delete.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -1161,63 +1161,106 @@ const APP = (() => {
     }
     const catColor = {concert:'cat-concert',sport:'cat-sport',theater:'cat-theater',
       exhibition:'cat-exhibition',festival:'cat-festival',other:'cat-other'};
+
+    // Разбиваем на секции: featured, эта неделя, скоро
+    const now = new Date();
+    const endOfWeek = new Date(now);
+    endOfWeek.setDate(now.getDate() + (7 - now.getDay()));
+    endOfWeek.setHours(23, 59, 59);
+
+    function parseEvDate(ev){
+      const parts = ev.date.split('.');
+      if(parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
+      return new Date(ev.date);
+    }
+
+    const featured = list.find(ev => ev.is_featured);
+    const rest = list.filter(ev => !ev.is_featured);
+    const thisWeek = rest.filter(ev => parseEvDate(ev) <= endOfWeek);
+    const soon = rest.filter(ev => parseEvDate(ev) > endOfWeek);
+
+    // Если нет featured — первое событие из thisWeek или soon становится hero
+    const heroEv = featured || thisWeek[0] || soon[0];
+    const otherThisWeek = thisWeek.filter(ev => ev !== heroEv);
+    const otherSoon = soon.filter(ev => ev !== heroEv);
+
     const parts = [];
-    list.forEach((ev, i) => {
+
+    // ── HERO карточка
+    if(heroEv){
+      const ev = heroEv;
       const hasT = ev.ticket_types && ev.ticket_types.length > 0;
       const mp   = hasT ? Math.min(...ev.ticket_types.map(t => t.price)) : 0;
       const ta   = hasT ? ev.ticket_types.reduce((s,t) => s + t.available, 0) : 0;
       const low  = ta > 0 && ta <= 20;
       const sold = ta === 0 && hasT;
-      const catCls = catColor[ev.category] || 'cat-other';
       const catName = CAT[ev.category] || ev.category;
       const priceStr = hasT ? _t('from')+' '+fmt(mp) : _t('free');
       const poster = ev.poster_url ? `<img src="${ev.poster_url}" loading="lazy">` : '';
       const emoji = ev.emoji || '🎡';
+      parts.push(`<div class="ev-hero" style="animation-delay:.03s" onclick="APP.openEvent(${ev.id})">
+        <div class="ev-hero-img">
+          ${poster || emoji}
+          <div class="ev-hero-grad"></div>
+          <div class="ev-hero-top">
+            <span class="ev-badge">${catName}</span>
+            ${ev.is_featured ? '<span class="ev-badge" style="background:rgba(245,158,11,.85)">⭐ Главное</span>' : ''}
+            ${low ? '<span class="ev-badge hot">🔥 '+_t('low')+'</span>' : ''}
+            ${sold ? '<span class="ev-badge hot">'+_t('soldOut')+'</span>' : ''}
+          </div>
+          <div class="ev-hero-bottom">
+            <div class="ev-hero-title">${ev.title}</div>
+            <div class="ev-hero-meta">📅 ${ev.date} · ${ev.time} &nbsp;·&nbsp; 📍 ${ev.venue}</div>
+            <div class="ev-hero-foot">
+              <div class="ev-hero-price">${priceStr}</div>
+              <button class="ev-hero-btn" onclick="event.stopPropagation();APP.openEvent(${ev.id})">${_t('buy')}</button>
+            </div>
+          </div>
+        </div>
+      </div>`);
+    }
 
-      if(i === 0){
-        // ── HERO карточка
-        parts.push(`<div class="ev-hero" style="animation-delay:.03s" onclick="APP.openEvent(${ev.id})">
-          <div class="ev-hero-img">
-            ${poster || emoji}
-            <div class="ev-hero-grad"></div>
-            <div class="ev-hero-top">
-              <span class="ev-badge">${catName}</span>
-              ${low ? '<span class="ev-badge hot">🔥 '+_t('low')+'</span>' : ''}
-              ${sold ? '<span class="ev-badge hot">'+_t('soldOut')+'</span>' : ''}
-            </div>
-            <div class="ev-hero-bottom">
-              <div class="ev-hero-title">${ev.title}</div>
-              <div class="ev-hero-meta">📅 ${ev.date} · ${ev.time} &nbsp;·&nbsp; 📍 ${ev.venue}</div>
-              <div class="ev-hero-foot">
-                <div class="ev-hero-price">${priceStr}</div>
-                <button class="ev-hero-btn" onclick="event.stopPropagation();APP.openEvent(${ev.id})">${_t('buy')}</button>
-              </div>
+    function renderRow(ev, i){
+      const hasT = ev.ticket_types && ev.ticket_types.length > 0;
+      const mp   = hasT ? Math.min(...ev.ticket_types.map(t => t.price)) : 0;
+      const ta   = hasT ? ev.ticket_types.reduce((s,t) => s + t.available, 0) : 0;
+      const low  = ta > 0 && ta <= 20;
+      const sold = ta === 0 && hasT;
+      const catCls  = catColor[ev.category] || 'cat-other';
+      const catName = CAT[ev.category] || ev.category;
+      const priceStr = hasT ? _t('from')+' '+fmt(mp) : _t('free');
+      const poster = ev.poster_url ? `<img src="${ev.poster_url}" loading="lazy">` : '';
+      return `<div class="ev-row" style="animation-delay:${i*.06}s" onclick="APP.openEvent(${ev.id})">
+        <div class="ev-row-img">${poster || (ev.emoji||'🎡')}</div>
+        <div class="ev-row-body">
+          <div>
+            <div class="ev-row-cat ${catCls}">${catName}</div>
+            <div class="ev-row-title">${ev.title}</div>
+            <div class="ev-row-meta">📅 ${ev.date} · ${ev.time} &nbsp;·&nbsp; 📍 ${ev.venue}</div>
+          </div>
+          <div class="ev-row-foot">
+            <div class="ev-row-price">${priceStr}</div>
+            <div class="seat-tag ${low||sold?'low':''}">
+              ${low||sold ? '<span class="ev-dot"></span>' : ''}
+              ${sold ? _t('soldOut') : ta+' '+_t('seats')}
             </div>
           </div>
-        </div>`);
-        // Разделитель после hero
-        if(list.length > 1) parts.push(`<div class="ev-sep"><div class="ev-sep-line"></div><div class="ev-sep-txt">Скоро</div><div class="ev-sep-line"></div></div>`);
-      } else {
-        // ── ROW карточка
-        parts.push(`<div class="ev-row" style="animation-delay:${i*.06}s" onclick="APP.openEvent(${ev.id})">
-          <div class="ev-row-img">${poster || emoji}</div>
-          <div class="ev-row-body">
-            <div>
-              <div class="ev-row-cat ${catCls}">${catName}</div>
-              <div class="ev-row-title">${ev.title}</div>
-              <div class="ev-row-meta">📅 ${ev.date} · ${ev.time} &nbsp;·&nbsp; 📍 ${ev.venue}</div>
-            </div>
-            <div class="ev-row-foot">
-              <div class="ev-row-price">${priceStr}</div>
-              <div class="seat-tag ${low||sold?'low':''}">
-                ${low||sold ? '<span class="ev-dot"></span>' : ''}
-                ${sold ? _t('soldOut') : ta+' '+_t('seats')}
-              </div>
-            </div>
-          </div>
-        </div>`);
-      }
-    });
+        </div>
+      </div>`;
+    }
+
+    // Секция «На этой неделе»
+    if(otherThisWeek.length){
+      parts.push('<div class="ev-sep"><div class="ev-sep-line"></div><div class="ev-sep-txt">На этой неделе</div><div class="ev-sep-line"></div></div>');
+      otherThisWeek.forEach((ev,i) => parts.push(renderRow(ev, i)));
+    }
+
+    // Секция «Скоро»
+    if(otherSoon.length){
+      parts.push('<div class="ev-sep"><div class="ev-sep-line"></div><div class="ev-sep-txt">Скоро</div><div class="ev-sep-line"></div></div>');
+      otherSoon.forEach((ev,i) => parts.push(renderRow(ev, i)));
+    }
+
     el.innerHTML = '<div class="ev-list">'+parts.join('')+'</div>';
   }
 
@@ -2356,22 +2399,31 @@ const APP = (() => {
       localStorage.removeItem('tb_role');
     }
 
-    const role = localStorage.getItem('tb_role');
+    const localRole = localStorage.getItem('tb_role');
 
-    if(role === 'buyer'){
+    if(localRole === 'buyer'){
       state.role = 'buyer';
       _showTabbar();
       _setActiveTab('events');
       goTo('pgBuyer');
       setTimeout(() => loadEvents(), 0);
-    } else if(role === 'seller' && state.orgLogin){
+    } else if(localRole === 'seller' && state.orgLogin){
       state.role = 'seller';
       _showTabbar();
       _setActiveTab('cabinet');
       goTo('pgSeller');
       sellerTab('stats');
+    } else if(!localRole && TG_USER_ID){
+      // Нет роли локально — спрашиваем сервер (новое устройство)
+      goTo('pgOnboard'); // показываем онбординг пока грузится
+      setTimeout(() => loadEvents(), 100);
+      apiFetch('/api/user/role').then(r => {
+        if(r.role === 'buyer'){
+          chooseRole('buyer');
+        }
+        // seller не восстанавливаем автоматически — нужен логин
+      }).catch(()=>{});
     } else {
-      // Показываем онбординг — события грузим в фоне
       localStorage.removeItem('tb_role');
       goTo('pgOnboard');
       setTimeout(() => loadEvents(), 100);
@@ -2664,12 +2716,13 @@ const APP = (() => {
 
   function admTab(tab){
     state.adminTab = tab;
-    ['pending','orgs','gen'].forEach(t => {
+    ['pending','afisha','orgs','gen'].forEach(t => {
       document.getElementById('adm-tab-'+t)?.classList.toggle('on', t===tab);
     });
     const c = document.getElementById('admContent');
     c.innerHTML = '<div class="empty"><div class="ld"></div></div>';
     if(tab === 'pending')  _admLoadPending(c);
+    if(tab === 'afisha')   _admLoadAfisha(c);
     if(tab === 'orgs')     _admLoadOrgs(c);
     if(tab === 'gen')      _admShowGen(c);
   }
@@ -2721,7 +2774,7 @@ const APP = (() => {
                 <span style="font-size:11px;font-weight:700;color:var(--green)">${fmt(tt.price)} · ${tt.total} мест</span>
               </div>`).join('')}
           </div>` : ''}
-          <div class="adm-row">
+          <div class="adm-row" style="flex-wrap:wrap;gap:6px">
             <button class="btn bp bsm" style="flex:1;background:var(--green)" onclick="APP.admApprove(${ev.id})">✅ Одобрить</button>
             <button class="btn bd bsm" style="flex:1" onclick="APP.admReject(${ev.id})">❌ Отклонить</button>
           </div>
@@ -2856,6 +2909,55 @@ const APP = (() => {
     } catch { showToast('❌ Ошибка','err'); }
   }
 
+  async function _admLoadAfisha(c){
+    try {
+      const evs = await apiFetch('/api/events');
+      if(!evs.length){
+        c.innerHTML = '<div class="empty"><div class="empty-ico">📭</div><div>Нет опубликованных событий</div></div>';
+        return;
+      }
+      c.innerHTML = '<div class="adm-card" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3);margin-bottom:12px">'+
+        '<div style="font-size:11px;color:var(--gold)">⭐ Главный баннер — первое большое событие которое видят все пользователи. Нажми «Сделать главным» чтобы поднять нужное событие.</div></div>'+
+        evs.map(ev => `
+          <div class="adm-card" style="${ev.is_featured?'border-color:var(--gold)':''}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              ${ev.poster_url ? `<img src="${ev.poster_url}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0">` : '<div style="width:48px;height:48px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(ev.emoji||'🎡')+'</div>'}
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:700;margin-bottom:2px">${ev.title}</div>
+                <div style="font-size:10px;color:var(--muted)">📅 ${ev.date} · 👤 ${ev.org_login||'—'}</div>
+              </div>
+              ${ev.is_featured ? '<span style="background:rgba(245,158,11,.15);color:var(--gold);font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;flex-shrink:0">⭐ Главное</span>' : ''}
+            </div>
+            <div class="adm-row" style="gap:6px">
+              ${ev.is_featured
+                ? `<button class="btn bd bsm" onclick="APP.admUnfeature(${ev.id})" style="flex:1">✕ Убрать с главного</button>`
+                : `<button class="btn bsm" onclick="APP.admSetFeatured(${ev.id})" style="flex:1;background:rgba(245,158,11,.15);color:var(--gold);border-color:rgba(245,158,11,.4)">⭐ Сделать главным</button>`
+              }
+            </div>
+          </div>`).join('');
+    } catch { c.innerHTML = '<div class="empty">Ошибка загрузки</div>'; }
+  }
+
+  async function admSetFeatured(id){
+    haptic();
+    try {
+      await apiFetch('/api/superadmin/event/'+id+'/feature', {method:'POST'});
+      showToast('⭐ Событие стало главным баннером','ok');
+      await loadEvents();
+      admTab('afisha');
+    } catch { showToast('❌ Ошибка','err'); }
+  }
+
+  async function admUnfeature(id){
+    haptic();
+    try {
+      await apiFetch('/api/superadmin/event/'+id+'/unfeature', {method:'POST'});
+      showToast('✅ Убрано с главного','ok');
+      await loadEvents();
+      admTab('afisha');
+    } catch { showToast('❌ Ошибка','err'); }
+  }
+
   function _admShowGen(c){
     c.innerHTML = `
       <div class="adm-card">
@@ -2925,7 +3027,7 @@ const APP = (() => {
     openCart, closeCart, removeFromCart, cancelCart, pay, closeSuccess,
     buyerTab, openBuyerCabinet, openQrModal, closeQrModal,
     openOrgLogin, submitOrgLogin, orgLogout,
-    openAdmin, closeAdmin, admTab, admApprove, admReject, admToggleOrg, admOrgDetail, admGenOrg, admCleanupUsers, _copyOrgCreds,
+    openAdmin, closeAdmin, admTab, admApprove, admReject, admToggleOrg, admOrgDetail, admSetFeatured, admUnfeature, admGenOrg, admCleanupUsers, _copyOrgCreds,
     openFavoritesPage, closeFavoritesPage, toggleFavorite,
     toggleLangDropdown, openLangModal, closeLangModal, setLang,
     openInMaps,
