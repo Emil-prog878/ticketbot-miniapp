@@ -517,6 +517,14 @@ textarea.fi{resize:vertical;min-height:70px}
 .divider{height:1px;background:var(--bdr);margin:12px 0}
 .tag-hot{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--gold);color:#000;margin-left:5px}
 
+/* ── СТРАНИЦА БЛОКИРОВКИ ── */
+#pgBlocked{z-index:50;background:var(--bg)}
+.blocked-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100vh;padding:32px;text-align:center;gap:16px}
+.blocked-ico{font-size:72px}
+.blocked-title{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:800;color:var(--red)}
+.blocked-sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:280px}
+
 /* ── КНОПКИ ШАПКИ ── */
 .hdr-btns{display:flex;align-items:center;gap:7px}
 .hdr-icon-btn{width:36px;height:36px;border-radius:12px;background:var(--bg2);
@@ -825,6 +833,16 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <!-- FAB кнопка админки -->
 <div class="admin-fab" id="adminFab" onclick="APP.openAdmin()">⚡</div>
+
+<!-- Страница блокировки -->
+<div class="page hide" id="pgBlocked">
+  <div class="blocked-wrap">
+    <div class="blocked-ico">🚫</div>
+    <div class="blocked-title">Аккаунт заблокирован</div>
+    <div class="blocked-sub">Ваш аккаунт организатора был заблокирован администратором.<br>Вы не можете пользоваться мини-приложением.</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">Обратитесь к администратору если считаете это ошибкой.</div>
+  </div>
+</div>
 
 <!-- язык — дропдаун в кнопке шапки -->
 
@@ -1206,7 +1224,7 @@ const APP = (() => {
           <div class="ev-hero-grad"></div>
           <div class="ev-hero-top">
             <span class="ev-badge">${catName}</span>
-            ${ev.is_featured ? '<span class="ev-badge" style="background:rgba(245,158,11,.85)">⭐ Главное</span>' : ''}
+
             ${low ? '<span class="ev-badge hot">🔥 '+_t('low')+'</span>' : ''}
             ${sold ? '<span class="ev-badge hot">'+_t('soldOut')+'</span>' : ''}
           </div>
@@ -1782,12 +1800,7 @@ const APP = (() => {
 
   // ══════════════ КАБИНЕТ ОРГАНИЗАТОРА ══════════════
 
-  async function sellerTab(tab){
-    // Проверяем блокировку при каждом действии в кабинете
-    if(state.orgLogin){
-      const ok = await _checkOrgActive();
-      if(!ok) return;
-    }
+  function sellerTab(tab){
     // Останавливаем камеру если уходим со сканера
     if(state.currentSelTab === 'scan' && tab !== 'scan') _stopCamera();
     state.currentSelTab = tab;
@@ -2676,23 +2689,23 @@ const APP = (() => {
     }
   }
 
-  function _forceLogoutOrg(msg){
+  function _forceLogoutOrg(){
     state.orgLogin = null; state.orgName = null; state.role = '';
     localStorage.removeItem('tb_org_login');
     localStorage.removeItem('tb_org_name');
     localStorage.removeItem('tb_role');
+    if(state._blockCheckInterval){ clearInterval(state._blockCheckInterval); state._blockCheckInterval = null; }
     _hideTabbar();
-    goTo('pgOnboard');
-    showToast(msg || '🚫 Ваш аккаунт заблокирован','err');
+    goTo('pgBlocked');
   }
 
   async function _checkOrgActive(){
     if(!state.orgLogin) return false;
     try {
       const r = await apiFetch('/api/org/check');
-      if(!r.active){ _forceLogoutOrg('🚫 Ваш аккаунт заблокирован администратором'); return false; }
+      if(!r.active || r.is_active === false){ _forceLogoutOrg(); return false; }
       return true;
-    } catch { return true; } // при ошибке сети — не выбрасываем
+    } catch { return true; }
   }
 
   async function _enterSellerCabinet(){
