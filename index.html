@@ -815,6 +815,7 @@ textarea.fi{resize:vertical;min-height:70px}
     </div>
     <div class="s-tabs" style="margin-top:10px">
       <div class="s-tab on" id="adm-tab-pending" onclick="APP.admTab('pending')">⏳ Модерация</div>
+      <div class="s-tab" id="adm-tab-afisha" onclick="APP.admTab('afisha')">⭐ Афиша</div>
       <div class="s-tab" id="adm-tab-orgs" onclick="APP.admTab('orgs')">👥 Организаторы</div>
       <div class="s-tab" id="adm-tab-gen" onclick="APP.admTab('gen')">🔑 Выдать доступ</div>
     </div>
@@ -902,6 +903,7 @@ const APP = (() => {
     currentSelTab: 'stats',
     buyerTab:      'tickets',
     lang:          localStorage.getItem('tb_lang') || 'ru',
+    _blockCheckInterval: null,
     orgLogin:      localStorage.getItem('tb_org_login') || null,
     orgName:       localStorage.getItem('tb_org_name')  || null,
     adminTab:      'pending',
@@ -1780,7 +1782,12 @@ const APP = (() => {
 
   // ══════════════ КАБИНЕТ ОРГАНИЗАТОРА ══════════════
 
-  function sellerTab(tab){
+  async function sellerTab(tab){
+    // Проверяем блокировку при каждом действии в кабинете
+    if(state.orgLogin){
+      const ok = await _checkOrgActive();
+      if(!ok) return;
+    }
     // Останавливаем камеру если уходим со сканера
     if(state.currentSelTab === 'scan' && tab !== 'scan') _stopCamera();
     state.currentSelTab = tab;
@@ -1964,6 +1971,11 @@ const APP = (() => {
   }
 
   async function submitEvent(){
+    // Проверяем блокировку перед созданием события
+    if(state.orgLogin){
+      const ok = await _checkOrgActive();
+      if(!ok) return;
+    }
     const g = id => document.getElementById(id)?.value?.trim() || '';
     const evId    = g('evId');
     const title   = g('evTitle'), venue = g('evVenue'), city = g('evCity');
@@ -2408,11 +2420,8 @@ const APP = (() => {
       goTo('pgBuyer');
       setTimeout(() => loadEvents(), 0);
     } else if(localRole === 'seller' && state.orgLogin){
-      state.role = 'seller';
-      _showTabbar();
-      _setActiveTab('cabinet');
-      goTo('pgSeller');
-      sellerTab('stats');
+      // Проверяем не заблокирован ли организатор при восстановлении сессии
+      _enterSellerCabinet();
     } else if(!localRole && TG_USER_ID){
       // Нет роли локально — спрашиваем сервер (новое устройство)
       goTo('pgOnboard'); // показываем онбординг пока грузится
@@ -2667,26 +2676,40 @@ const APP = (() => {
     }
   }
 
-  async function _enterSellerCabinet(){
-    // Проверяем не заблокирован ли организатор
+  function _forceLogoutOrg(msg){
+    state.orgLogin = null; state.orgName = null; state.role = '';
+    localStorage.removeItem('tb_org_login');
+    localStorage.removeItem('tb_org_name');
+    localStorage.removeItem('tb_role');
+    _hideTabbar();
+    goTo('pgOnboard');
+    showToast(msg || '🚫 Ваш аккаунт заблокирован','err');
+  }
+
+  async function _checkOrgActive(){
+    if(!state.orgLogin) return false;
     try {
       const r = await apiFetch('/api/org/check');
-      if(!r.active){
-        state.orgLogin = null; state.orgName = null;
-        localStorage.removeItem('tb_org_login');
-        localStorage.removeItem('tb_org_name');
-        localStorage.removeItem('tb_role');
-        goTo('pgOnboard');
-        showToast('🚫 Ваш аккаунт заблокирован администратором','err');
-        return;
-      }
-    } catch {}
+      if(!r.active){ _forceLogoutOrg('🚫 Ваш аккаунт заблокирован администратором'); return false; }
+      return true;
+    } catch { return true; } // при ошибке сети — не выбрасываем
+  }
+
+  async function _enterSellerCabinet(){
+    const ok = await _checkOrgActive();
+    if(!ok) return;
     state.role = 'seller';
     localStorage.setItem('tb_role','seller');
     _showTabbar();
     _setActiveTab('cabinet');
     goTo('pgSeller');
     sellerTab('stats');
+    // Проверяем каждые 3 минуты пока кабинет открыт
+    if(state._blockCheckInterval) clearInterval(state._blockCheckInterval);
+    state._blockCheckInterval = setInterval(async () => {
+      if(state.role === 'seller') await _checkOrgActive();
+      else clearInterval(state._blockCheckInterval);
+    }, 3 * 60 * 1000);
   }
 
   function orgLogout(){
