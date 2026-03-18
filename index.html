@@ -2417,6 +2417,23 @@ const APP = (() => {
   function init(){
     _initEvents();
 
+    // Если был заблокирован — сразу показываем страницу блокировки
+    if(localStorage.getItem('tb_blocked') === '1'){
+      _hideTabbar();
+      goTo('pgBlocked');
+      // Но всё равно проверяем с сервером — вдруг разблокировали
+      if(state.orgLogin){
+        _checkOrgActive().then(ok => {
+          if(ok){
+            // Разблокировали — сбрасываем флаг и показываем онбординг
+            localStorage.removeItem('tb_blocked');
+            goTo('pgOnboard');
+          }
+        });
+      }
+      return;
+    }
+
     // Сбрасываем зависшие состояния
     const savedRole = localStorage.getItem('tb_role');
     if(savedRole === 'seller' && !state.orgLogin){
@@ -2694,6 +2711,7 @@ const APP = (() => {
     localStorage.removeItem('tb_org_login');
     localStorage.removeItem('tb_org_name');
     localStorage.removeItem('tb_role');
+    localStorage.setItem('tb_blocked', '1'); // помним что заблокированы
     if(state._blockCheckInterval){ clearInterval(state._blockCheckInterval); state._blockCheckInterval = null; }
     _hideTabbar();
     goTo('pgBlocked');
