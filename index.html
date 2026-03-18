@@ -769,11 +769,11 @@ textarea.fi{resize:vertical;min-height:70px}
       <div class="logo">🏪 Кабинет</div>
     </div>
     <div class="sel-tabs" id="selTabs">
-      <div class="s-tab on" onclick="APP.sellerTab('stats')">📊 Стат</div>
-      <div class="s-tab" onclick="APP.sellerTab('events')">📅 События</div>
-      <div class="s-tab" onclick="APP.sellerTab('add')">➕ Добавить</div>
-      <div class="s-tab" onclick="APP.sellerTab('scan')">📷 Сканер</div>
-      <div class="s-tab" onclick="APP.sellerTab('promo')">🏷 Промо</div>
+      <div class="s-tab on" id="stab-stats" onclick="APP.sellerTab('stats')">📊 Стат</div>
+      <div class="s-tab" id="stab-events" onclick="APP.sellerTab('events')">📅 События</div>
+      <div class="s-tab" id="stab-add" onclick="APP.sellerTab('add')">➕ Добавить</div>
+      <div class="s-tab" id="stab-scan" onclick="APP.sellerTab('scan')">📷 Сканер</div>
+      <div class="s-tab" id="stab-promo" onclick="APP.sellerTab('promo')">🏷 Промо</div>
     </div>
   </div>
   <div class="scr" id="selContent"></div>
@@ -848,7 +848,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
 <script>
 const CFG = {
-  API: "https://cheese-defensive-heater-onion.trycloudflare.com",
+  API: "https://minister-ata-scoop-projected.trycloudflare.com",
   CURRENCY: "сум",
   MAX_QTY: 8
 };
@@ -872,6 +872,9 @@ const I18N = {
     active:"Активен", used:"Использован",
     dateLabel:"📅 Дата", timeLabel:"🕐 Время", venueLabel:"📍 Место", ageLabel:"🔞 Возраст",
     searchEmpty:"Ничего не найдено", openMaps:"Открыть в Google Maps ↗",
+    thisWeek:"На этой неделе", soon:"Скоро",
+    tabTickets:"Билеты", tabHistory:"История", tabProfile:"Профиль",
+    sStats:"📊 Стат", sEvents:"📅 События", sAdd:"➕ Добавить", sScan:"📷 Сканер", sPromo:"🏷 Промо",
     low:"Мало мест", soldOut:"Распродано",
   },
   uz:{
@@ -886,6 +889,9 @@ const I18N = {
     active:"Faol", used:"Ishlatilgan",
     dateLabel:"📅 Sana", timeLabel:"🕐 Vaqt", venueLabel:"📍 Joy", ageLabel:"🔞 Yosh",
     searchEmpty:"Hech narsa topilmadi", openMaps:"Google Maps da ochish",
+    thisWeek:"Bu hafta", soon:"Tez orada",
+    tabTickets:"Chiptalar", tabHistory:"Tarix", tabProfile:"Profil",
+    sStats:"📊 Stat", sEvents:"📅 Tadbirlar", sAdd:"➕ Qo`shish", sScan:"📷 Skaner", sPromo:"🏷 Promo",
     low:"Kam joy", soldOut:"Sotildi",
   },
   en:{
@@ -900,10 +906,19 @@ const I18N = {
     active:"Active", used:"Used",
     dateLabel:"📅 Date", timeLabel:"🕐 Time", venueLabel:"📍 Venue", ageLabel:"🔞 Age",
     searchEmpty:"Nothing found", openMaps:"Open in Google Maps",
+    thisWeek:"This week", soon:"Coming soon",
+    tabTickets:"Tickets", tabHistory:"History", tabProfile:"Profile",
+    sStats:"📊 Stats", sEvents:"📅 Events", sAdd:"➕ Add", sScan:"📷 Scanner", sPromo:"🏷 Promo",
     low:"Few seats", soldOut:"Sold out",
   },
 };
-const CAT = {all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"};
+const CAT_I18N = {
+  ru:{all:"🌐 Все",concert:"🎵 Концерты",theater:"🎭 Театр",sport:"⚽ Спорт",exhibition:"🖼 Выставки",festival:"🎪 Фестивали",other:"🎡 Другое"},
+  uz:{all:"🌐 Hammasi",concert:"🎵 Konsertlar",theater:"🎭 Teatr",sport:"⚽ Sport",exhibition:"🖼 Ko`rgazma",festival:"🎪 Festival",other:"🎡 Boshqa"},
+  en:{all:"🌐 All",concert:"🎵 Concerts",theater:"🎭 Theatre",sport:"⚽ Sport",exhibition:"🖼 Exhibition",festival:"🎪 Festival",other:"🎡 Other"},
+};
+function getCAT(){ return CAT_I18N[state?.lang||'ru'] || CAT_I18N.ru; }
+const CAT = new Proxy({}, { get(_,k){ return getCAT()[k]; } });
 
 const APP = (() => {
   const CART_TTL = 15 * 60; // 15 минут в секундах
@@ -2417,19 +2432,32 @@ const APP = (() => {
   function init(){
     _initEvents();
 
-    // Если был заблокирован — сразу показываем страницу блокировки
+    // Если был заблокирован — проверяем с сервером актуальный статус
     if(localStorage.getItem('tb_blocked') === '1'){
-      _hideTabbar();
-      goTo('pgBlocked');
-      // Но всё равно проверяем с сервером — вдруг разблокировали
-      if(state.orgLogin){
-        _checkOrgActive().then(ok => {
-          if(ok){
-            // Разблокировали — сбрасываем флаг и показываем онбординг
-            localStorage.removeItem('tb_blocked');
-            goTo('pgOnboard');
-          }
-        });
+      const blockedLogin = localStorage.getItem('tb_org_login_blocked');
+      if(blockedLogin){
+        // Проверяем: разблокировали ли уже?
+        apiFetch('/api/org/check', {headers:{'X-Org-Login': blockedLogin}})
+          .then(r => {
+            if(r.active === true){
+              // Разблокировали — снимаем флаг, предлагаем войти
+              localStorage.removeItem('tb_blocked');
+              localStorage.removeItem('tb_org_login_blocked');
+              goTo('pgOnboard');
+            } else {
+              // Всё ещё заблокирован
+              _hideTabbar();
+              goTo('pgBlocked');
+            }
+          })
+          .catch(() => {
+            // Нет сети — показываем блок
+            _hideTabbar();
+            goTo('pgBlocked');
+          });
+      } else {
+        // Нет логина для проверки — снимаем флаг
+        localStorage.removeItem('tb_blocked');
       }
       return;
     }
@@ -2459,8 +2487,11 @@ const APP = (() => {
       apiFetch('/api/user/role').then(r => {
         if(r.role === 'buyer'){
           chooseRole('buyer');
+        } else if(r.role === 'seller'){
+          // Организатор — показываем форму входа сразу
+          goTo('pgOrgLogin');
         }
-        // seller не восстанавливаем автоматически — нужен логин
+        // если роли нет — остаёмся на онбординге
       }).catch(()=>{});
     } else {
       localStorage.removeItem('tb_role');
@@ -2498,11 +2529,16 @@ const APP = (() => {
       document.getElementById('lopt-'+l)?.classList.toggle('on', l===cur);
     });
     dd.classList.add('on');
-    // Закрываем по клику вне
+    // Закрываем по клику вне — с задержкой 150мс чтобы не поймать текущий клик
     setTimeout(() => {
-      const close = e => { dd.classList.remove('on'); document.removeEventListener('click', close); };
+      function close(e){
+        const btn = document.getElementById('langBtn');
+        if(btn && btn.contains(e.target)) return; // клик на кнопке — не закрываем
+        dd.classList.remove('on');
+        document.removeEventListener('click', close);
+      }
       document.addEventListener('click', close);
-    }, 50);
+    }, 150);
   }
   function openLangModal(){ toggleLangDropdown(); }
   function closeLangModal(){ document.getElementById('langDropdown')?.classList.remove('on'); }
@@ -2521,9 +2557,21 @@ const APP = (() => {
       si.placeholder = _t('search');
     });
 
-    // 3. Таббар
+    // 3. Нижний таббар
     [['tab-events','events'],['tab-cart','cart'],['tab-cabinet','cabinet']].forEach(([id,k])=>{
       const el = document.querySelector('#'+id+' .tab-label');
+      if(el) el.textContent = _t(k);
+    });
+
+    // 3b. Таббар покупателя (Билеты/История/Профиль)
+    [['bct-tickets','tabTickets'],['bct-history','tabHistory'],['bct-profile','tabProfile']].forEach(([id,k])=>{
+      const el = document.getElementById(id);
+      if(el) el.textContent = _t(k);
+    });
+
+    // 3c. Таббар организатора
+    [['stab-stats','sStats'],['stab-events','sEvents'],['stab-add','sAdd'],['stab-scan','sScan'],['stab-promo','sPromo']].forEach(([id,k])=>{
+      const el = document.getElementById(id);
       if(el) el.textContent = _t(k);
     });
 
@@ -2606,17 +2654,16 @@ const APP = (() => {
       c.innerHTML = '<div class="ev-list">'+favs.map((ev,i) => {
         const mp = ev.ticket_types.length ? Math.min(...ev.ticket_types.map(t=>t.price)) : 0;
         const ta = ev.ticket_types.reduce((s,t)=>s+t.available,0);
-        return '<div class="ev-card" style="animation-delay:'+(i*.06)+'s" onclick="APP.openEvent('+ev.id+')">'+
-          '<div class="ev-inner">'+
-          '<div class="ev-poster">'+(ev.poster_url?'<img src="'+ev.poster_url+'" loading="lazy">':'')+'<span class="ev-pe">'+(ev.emoji||'🎡')+'</span></div>'+
-          '<div class="ev-body">'+
-          '<div class="ev-cat">'+(CAT[ev.category]||ev.category)+'</div>'+
-          '<div class="ev-title">'+ev.title+'</div>'+
-          '<div class="ev-meta">📅 '+ev.date+' · '+ev.time+'</div>'+
-          '<div class="ev-meta">📍 '+ev.venue+', '+ev.city+'</div>'+
-          '<div class="ev-foot"><div class="ev-price">'+(mp>0?_t('from')+' '+fmt(mp):_t('free'))+'</div>'+
+        const catCls2 = {concert:'cat-concert',sport:'cat-sport',theater:'cat-theater',exhibition:'cat-exhibition',festival:'cat-festival',other:'cat-other'}[ev.category]||'cat-other';
+        return '<div class="ev-row" style="animation-delay:'+(i*.06)+'s" onclick="APP.openEvent('+ev.id+')">'+
+          '<div class="ev-row-img">'+(ev.poster_url?'<img src="'+ev.poster_url+'" loading="lazy">':'')+(ev.emoji||'🎡')+'</div>'+
+          '<div class="ev-row-body">'+
+          '<div class="ev-row-cat '+catCls2+'">'+(CAT[ev.category]||ev.category)+'</div>'+
+          '<div class="ev-row-title">'+ev.title+'</div>'+
+          '<div class="ev-row-meta">📅 '+ev.date+' · '+ev.time+' · 📍 '+ev.venue+'</div>'+
+          '<div class="ev-row-foot"><div class="ev-row-price">'+(mp>0?_t('from')+' '+fmt(mp):_t('free'))+'</div>'+
           '<div class="seat-tag">'+ta+' '+_t('seats')+'</div></div>'+
-          '</div></div></div>';
+          '</div></div>';
       }).join('')+'</div>';
     } catch {
       c.innerHTML = '<div class="empty"><div class="empty-ico">🤍</div><div>Ошибка загрузки</div></div>';
@@ -2707,11 +2754,13 @@ const APP = (() => {
   }
 
   function _forceLogoutOrg(){
+    const blockedLogin = state.orgLogin;
     state.orgLogin = null; state.orgName = null; state.role = '';
     localStorage.removeItem('tb_org_login');
     localStorage.removeItem('tb_org_name');
     localStorage.removeItem('tb_role');
-    localStorage.setItem('tb_blocked', '1'); // помним что заблокированы
+    localStorage.setItem('tb_blocked', '1');
+    if(blockedLogin) localStorage.setItem('tb_org_login_blocked', blockedLogin);
     if(state._blockCheckInterval){ clearInterval(state._blockCheckInterval); state._blockCheckInterval = null; }
     _hideTabbar();
     goTo('pgBlocked');
