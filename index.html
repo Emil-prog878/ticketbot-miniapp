@@ -917,7 +917,8 @@ const CAT_I18N = {
   uz:{all:"🌐 Hammasi",concert:"🎵 Konsertlar",theater:"🎭 Teatr",sport:"⚽ Sport",exhibition:"🖼 Ko`rgazma",festival:"🎪 Festival",other:"🎡 Boshqa"},
   en:{all:"🌐 All",concert:"🎵 Concerts",theater:"🎭 Theatre",sport:"⚽ Sport",exhibition:"🖼 Exhibition",festival:"🎪 Festival",other:"🎡 Other"},
 };
-function getCAT(){ return CAT_I18N[state?.lang||'ru'] || CAT_I18N.ru; }
+// CAT читает язык из localStorage напрямую (без доступа к state)
+function getCAT(){ const l = localStorage.getItem('tb_lang')||'ru'; return CAT_I18N[l] || CAT_I18N.ru; }
 const CAT = new Proxy({}, { get(_,k){ return getCAT()[k]; } });
 
 const APP = (() => {
@@ -1300,10 +1301,21 @@ const APP = (() => {
   }
 
   // ── ДЕТАЛИ СОБЫТИЯ ────────────────────────────────
-  function openEvent(id){
-    const ev = state.events.find(e => e.id === id);
+  async function openEvent(id){
+    let ev = state.events.find(e => e.id === id);
     if(!ev) return;
     state.curEvent = ev; state.curTicketType = null; state.qty = 1;
+    // Показываем страницу сразу с тем что есть
+    _renderEventDetail(ev);
+    // Потом подгружаем полную инфу (description, poster base64)
+    try {
+      const full = await apiFetch('/api/event/'+id);
+      state.curEvent = full;
+      _renderEventDetail(full);
+    } catch {}
+  }
+
+  function _renderEventDetail(ev){
 
     // Показываем панель кнопки
 
